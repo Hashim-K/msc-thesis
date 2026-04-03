@@ -1,0 +1,33 @@
+[submodule "repos/mir-core"]
+	path = repos/mir-core
+	url = git@github.com:Hashim-K/mir-core.git
+[submodule "repos/mir-train-hpc"]
+	path = repos/mir-train-hpc
+	url = git@github.com:Hashim-K/mir-train-hpc.git
+[submodule "repos/mir-desktop-app"]
+	path = repos/mir-desktop-app
+	url = git@github.com:Hashim-K/mir-desktop-app.git
+[submodule "repos/mir-webapp"]
+	path = repos/mir-webapp
+	url = git@github.com:Hashim-K/mir-webapp.git
+[submodule "repos/mir-embedded-ai"]
+	path = repos/mir-embedded-ai
+	url = git@github.com:Hashim-K/mir-embedded-ai.git
+[submodule "repos/mir-embedded-hmi"]
+	path = repos/mir-embedded-hmi
+	url = git@github.com:Hashim-K/mir-embedded-hmi.git
+[submodule "repos/mir-environment"]
+	path = repos/mir-environment
+	url = git@github.com:Hashim-K/mir-environment.git
+[submodule "repos/mir-data"]
+	path = repos/mir-data
+	url = git@github.com:Hashim-K/mir-data.git
+[submodule "repos/mir-outputs"]
+	path = repos/mir-outputs
+	url = git@github.com:Hashim-K/mir-outputs.git
+[submodule "repos/thesis-docs"]
+	path = repos/thesis-docs
+	url = git@github.com:Hashim-K/thesis-docs.git
+[submodule "repos/thesis-latex"]
+	path = repos/thesis-latex
+	url = git@github.com:Hashim-K/thesis-latex.git
