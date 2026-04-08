@@ -1,45 +1,94 @@
 #!/usr/bin/env bash
-# bootstrap.sh — first-time setup for the msc-thesis workspace (laptop)
+# init-workspace.sh — first-time setup for the msc-thesis workspace
 set -euo pipefail
+
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
- 
+ENVFILE="$ROOT/.env"
+ENVEXAMPLE="$ROOT/.env.example"
+created_env=false
+
+get_env_value() {
+  local key="$1"
+  local file="$2"
+  awk -F= -v key="$key" '$1 == key {sub(/^[^=]*=/, "", $0); print $0; exit}' "$file"
+}
+
+set_env_value() {
+  local key="$1"
+  local value="$2"
+  local file="$3"
+  if grep -q "^${key}=" "$file"; then
+    sed -i "s|^${key}=.*|${key}=${value}|" "$file"
+  else
+    printf '%s=%s\n' "$key" "$value" >> "$file"
+  fi
+}
+
+prompt_path_value() {
+  local key="$1"
+  local label="$2"
+  local default_value="$3"
+  local current_value
+  local prompt_value
+  local input_value
+
+  current_value="$(get_env_value "$key" "$ENVFILE")"
+  if [[ -n "$current_value" && "$current_value" != /path/to/msc-thesis/* ]]; then
+    prompt_value="$current_value"
+  else
+    prompt_value="$default_value"
+  fi
+
+  read -r -p "$label [$prompt_value]: " input_value
+  if [[ -n "$input_value" ]]; then
+    set_env_value "$key" "$input_value" "$ENVFILE"
+  else
+    set_env_value "$key" "$prompt_value" "$ENVFILE"
+  fi
+}
+
 echo "==> Initialising submodules..."
 git -C "$ROOT" submodule update --init --recursive
- 
+
 echo "==> Setting up .env..."
-ENVFILE="$ROOT/.env"
-if [ ! -f "$ENVFILE" ]; then
-  cat > "$ENVFILE" <<ENVEOF
-MIR_DATA_ROOT=$ROOT/repos/mir-data
-MIR_OUTPUTS_ROOT=$ROOT/repos/mir-outputs
-MIR_CORE_PATH=$ROOT/repos/mir-core
- 
-# MinIO / DVC — fill these in
-MINIO_ENDPOINT=https://minio-api.hashimkarim.com
-AWS_ACCESS_KEY_ID=
-AWS_SECRET_ACCESS_KEY=
-ENVEOF
-  echo "    .env created — fill in AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY"
+if [[ ! -f "$ENVFILE" ]]; then
+  if [[ ! -f "$ENVEXAMPLE" ]]; then
+    echo "Missing $ENVEXAMPLE"
+    exit 1
+  fi
+  cp "$ENVEXAMPLE" "$ENVFILE"
+  created_env=true
+  echo "    .env created from .env.example"
+  echo "    Fill in AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY before using DVC"
 else
   echo "    .env already exists, skipping"
 fi
- 
-source "$ENVFILE"
- 
+
+data_default="$ROOT/repos/mir-data"
+outputs_default="$ROOT/repos/mir-outputs"
+core_default="$ROOT/repos/mir-core"
+
+if $created_env || [[ "$(get_env_value MIR_DATA_ROOT "$ENVFILE")" == /path/to/msc-thesis/* ]] || [[ "$(get_env_value MIR_OUTPUTS_ROOT "$ENVFILE")" == /path/to/msc-thesis/* ]] || [[ "$(get_env_value MIR_CORE_PATH "$ENVFILE")" == /path/to/msc-thesis/* ]]; then
+  echo "==> Workspace paths..."
+  prompt_path_value "MIR_DATA_ROOT" "Path to mir-data" "$data_default"
+  prompt_path_value "MIR_OUTPUTS_ROOT" "Path to mir-outputs" "$outputs_default"
+  prompt_path_value "MIR_CORE_PATH" "Path to mir-core" "$core_default"
+fi
+
+if command -v dvc >/dev/null 2>&1; then
+  echo "==> DVC already installed, skipping"
+else
+  echo "==> Installing DVC..."
+  pip install "dvc[s3]"
+fi
+
 echo "==> Installing mir-core (editable)..."
 pip install -e "$ROOT/repos/mir-core"
- 
-echo "==> Writing DVC credentials (local only, not committed)..."
-for repo in mir-data mir-outputs; do
-  DIR="$ROOT/repos/$repo"
-  if [ -f "$DIR/.dvc/config" ]; then
-    dvc remote modify origin access_key_id     "$AWS_ACCESS_KEY_ID"     --local -C "$DIR" 2>/dev/null || true
-    dvc remote modify origin secret_access_key "$AWS_SECRET_ACCESS_KEY" --local -C "$DIR" 2>/dev/null || true
-    echo "    DVC credentials written for $repo"
-  fi
-done
- 
+
+echo "==> Configuring DVC remotes..."
+"$ROOT/scripts/setup-dvc.sh"
+
 echo ""
-echo "Bootstrap complete."
-echo "Run: source .env"
-echo "Then pull data: cd repos/mir-data && dvc pull"
+echo "Workspace initialization complete."
+echo "Environment file: $ENVFILE"
+echo "Data pull: cd $ROOT/repos/mir-data && dvc pull"

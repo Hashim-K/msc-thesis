@@ -1,7 +1,0 @@
-github_user: Hashim-K
-repos_root: repos/
-dvc_endpoint: https://minio-api.hashimkarim.com
-env_vars:
-  MIR_DATA_ROOT: repos/mir-data
-  MIR_OUTPUTS_ROOT: repos/mir-outputs
-  MIR_CORE_PATH: repos/mir-core

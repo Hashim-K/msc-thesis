@@ -9,7 +9,49 @@ Orchestrator workspace for Hashim Karim's MSc thesis.
 ```bash
 git clone --recurse-submodules git@github.com:Hashim-K/msc-thesis.git
 cd msc-thesis
-./scripts/bootstrap.sh
+./scripts/init-workspace.sh
+```
+
+`init-workspace.sh` will:
+
+- initialize submodules
+- create `.env` from `.env.example` if needed
+- auto-detect workspace repo paths and prompt for overrides when `.env` is first created or still uses placeholders
+- install `dvc[s3]`
+- install `repos/mir-core` in editable mode
+- run `./scripts/setup-dvc.sh`
+
+`update-workspace.sh` will:
+
+- refresh `dvc[s3]`
+- refresh the editable `repos/mir-core` install
+- rerun `./scripts/setup-dvc.sh`
+
+Use it when `.env`, MinIO credentials, or local workspace configuration changes.
+
+`scripts/setup-dvc.sh` will:
+
+- prompt for MinIO access key and secret key, while allowing Enter to keep the current `.env` value
+- configure local DVC remotes for `repos/mir-data` and `repos/mir-outputs`
+- optionally run `dvc pull` for `repos/mir-data` when valid MinIO credentials are configured
+
+It does **not**:
+
+- run `dvc push`
+- create or modify remote bucket contents
+
+`scripts/setup-dvc.sh` only updates local DVC configuration in:
+
+- `repos/mir-data/.dvc/config`
+- `repos/mir-data/.dvc/config.local`
+- `repos/mir-outputs/.dvc/config`
+- `repos/mir-outputs/.dvc/config.local`
+
+If you skip the optional pull in `scripts/setup-dvc.sh`, pull data explicitly:
+
+```bash
+cd repos/mir-data
+dvc pull
 ```
  
 ## Submodules
@@ -32,8 +74,10 @@ cd msc-thesis
  
 | Script | Purpose |
 |--------|---------|
-| `scripts/bootstrap.sh` | First-time setup — submodules, conda env, DVC, .env |
-| `scripts/sync.sh` | Pull latest on all submodules + update SHA pins |
+| `scripts/init-workspace.sh` | First-time setup — submodules, `.env`, `mir-core`, local DVC config |
+| `scripts/update-workspace.sh` | Refresh local workspace configuration after `.env` or credential changes |
+| `scripts/setup-dvc.sh` | Configure local DVC credentials/remotes and optionally pull `mir-data` |
+| `scripts/update-repos.sh` | Pull latest on all submodules + update SHA pins |
 | `scripts/run-desktop.sh` | Launch desktop app |
 | `scripts/run-web.sh` | Launch webapp |
 | `scripts/promote-model.sh` | Promote checkpoint from outputs to data |
