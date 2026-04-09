@@ -177,6 +177,10 @@ if $created_env || [[ "$(get_env_value MIR_DATA_ROOT "$ENVFILE")" == /path/to/ms
   prompt_path_value "MIR_CORE_PATH" "Path to mir-core" "$core_default"
 fi
 
+export MIR_DATA_ROOT="$(get_env_value MIR_DATA_ROOT "$ENVFILE")"
+export MIR_OUTPUTS_ROOT="$(get_env_value MIR_OUTPUTS_ROOT "$ENVFILE")"
+export MIR_CORE_PATH="$(get_env_value MIR_CORE_PATH "$ENVFILE")"
+
 prompt_target_environment
 require_conda
 
