@@ -11,9 +11,42 @@ target_kind=""
 target_env_name=""
 target_env_file=""
 
+load_daic_miniconda() {
+  if command -v conda >/dev/null 2>&1; then
+    return 0
+  fi
+
+  if command -v module >/dev/null 2>&1; then
+    module use /opt/insy/modulefiles
+    module load miniconda
+  elif command -v modulecmd >/dev/null 2>&1; then
+    eval "$(modulecmd bash use /opt/insy/modulefiles)"
+    eval "$(modulecmd bash load miniconda)"
+  elif [[ -f /etc/profile.d/modules.sh ]]; then
+    # shellcheck disable=SC1091
+    source /etc/profile.d/modules.sh
+    module use /opt/insy/modulefiles
+    module load miniconda
+  elif [[ -f /usr/share/Modules/init/bash ]]; then
+    # shellcheck disable=SC1091
+    source /usr/share/Modules/init/bash
+    module use /opt/insy/modulefiles
+    module load miniconda
+  fi
+
+  command -v conda >/dev/null 2>&1
+}
+
 require_conda() {
   if command -v conda >/dev/null 2>&1; then
     return
+  fi
+
+  if [[ "$target_kind" == "daic" ]]; then
+    echo "==> Loading Miniconda module for DAIC..."
+    if load_daic_miniconda; then
+      return
+    fi
   fi
 
   echo "conda is not available on PATH."
@@ -144,8 +177,8 @@ if $created_env || [[ "$(get_env_value MIR_DATA_ROOT "$ENVFILE")" == /path/to/ms
   prompt_path_value "MIR_CORE_PATH" "Path to mir-core" "$core_default"
 fi
 
-require_conda
 prompt_target_environment
+require_conda
 
 set -a
 source "$ENVFILE"

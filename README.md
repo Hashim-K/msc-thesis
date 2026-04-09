@@ -14,7 +14,7 @@ cd msc-thesis
 
 The script will ask whether you are setting up a `desktop` or `daic` environment and then create or update the matching conda environment for you.
 
-On DAIC, make `conda` available first. For example:
+On DAIC, the script will try to load the Miniconda module automatically. If that fails, run:
 
 ```bash
 module use /opt/insy/modulefiles
