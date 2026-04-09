@@ -9,6 +9,16 @@ Orchestrator workspace for Hashim Karim's MSc thesis.
 ```bash
 git clone --recurse-submodules git@github.com:Hashim-K/msc-thesis.git
 cd msc-thesis
+conda activate MIR
+./scripts/init-workspace.sh
+```
+
+On DAIC, activate a Python 3.10+ environment first. For example:
+
+```bash
+module use /opt/insy/modulefiles
+module load miniconda
+conda activate MIR-daic
 ./scripts/init-workspace.sh
 ```
 
@@ -17,13 +27,15 @@ cd msc-thesis
 - initialize submodules
 - create `.env` from `.env.example` if needed
 - auto-detect workspace repo paths and prompt for overrides when `.env` is first created or still uses placeholders
-- install `dvc[s3]`
+- require Python 3.10+ in the active environment
+- install `dvc[s3]` into the active Python environment
 - install `repos/mir-core` in editable mode
 - run `./scripts/setup-dvc.sh`
 
 `update-workspace.sh` will:
 
-- refresh `dvc[s3]`
+- require Python 3.10+ in the active environment
+- refresh `dvc[s3]` in the active Python environment
 - refresh the editable `repos/mir-core` install
 - rerun `./scripts/setup-dvc.sh`
 
