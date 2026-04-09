@@ -66,11 +66,14 @@ configure_remote() {
   fi
 
   echo "==> $(basename "$repo_dir")"
-  dvc --cd "$repo_dir" remote add -f -d origin "s3://$bucket"
-  dvc --cd "$repo_dir" remote modify origin endpointurl "$MINIO_ENDPOINT"
-  dvc --cd "$repo_dir" remote modify --local origin access_key_id "$AWS_ACCESS_KEY_ID"
-  dvc --cd "$repo_dir" remote modify --local origin secret_access_key "$AWS_SECRET_ACCESS_KEY"
-  dvc --cd "$repo_dir" remote list
+  (
+    cd "$repo_dir"
+    dvc remote add -f -d origin "s3://$bucket"
+    dvc remote modify origin endpointurl "$MINIO_ENDPOINT"
+    dvc remote modify --local origin access_key_id "$AWS_ACCESS_KEY_ID"
+    dvc remote modify --local origin secret_access_key "$AWS_SECRET_ACCESS_KEY"
+    dvc remote list
+  )
   echo
 }
 
@@ -83,7 +86,10 @@ read -r -p "Pull mir-data DVC data now? [y/N]: " pull_now
 case "$pull_now" in
   y|Y|yes|YES)
     echo "==> Pulling mir-data data..."
-    dvc --cd "$workspace_root/repos/mir-data" pull
+    (
+      cd "$workspace_root/repos/mir-data"
+      dvc pull
+    )
     ;;
   *)
     ;;

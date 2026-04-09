@@ -48,7 +48,10 @@ prompt_path_value() {
 }
 
 echo "==> Initialising submodules..."
-git -C "$ROOT" submodule update --init --recursive
+(
+  cd "$ROOT"
+  git submodule update --init --recursive
+)
 
 echo "==> Setting up .env..."
 if [[ ! -f "$ENVFILE" ]]; then
