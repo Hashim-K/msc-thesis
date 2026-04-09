@@ -5,38 +5,23 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENVFILE="$ROOT/.env"
 ENVEXAMPLE="$ROOT/.env.example"
+ENVROOT="$ROOT/repos/mir-environment"
 created_env=false
+target_kind=""
+target_env_name=""
+target_env_file=""
 
-require_python() {
-  if ! command -v python >/dev/null 2>&1; then
-    echo "Python is not available on PATH."
-    echo "Activate a Python 3.10+ environment first, for example:"
-    echo "  conda activate MIR"
-    echo "  conda activate MIR-daic"
-    exit 1
+require_conda() {
+  if command -v conda >/dev/null 2>&1; then
+    return
   fi
 
-  if ! python - <<'PY' >/dev/null 2>&1
-import sys
-raise SystemExit(0 if sys.version_info >= (3, 10) else 1)
-PY
-  then
-    echo "Python 3.10+ is required."
-    echo "Current interpreter: $(python --version 2>&1)"
-    echo "Activate a compatible environment first, for example:"
-    echo "  conda activate MIR"
-    echo "  conda activate MIR-daic"
-    exit 1
-  fi
-}
-
-install_dvc_if_needed() {
-  if command -v dvc >/dev/null 2>&1 && python -m pip show dvc >/dev/null 2>&1; then
-    echo "==> DVC already installed in the active Python environment, skipping"
-  else
-    echo "==> Installing DVC into the active Python environment..."
-    python -m pip install "dvc[s3]"
-  fi
+  echo "conda is not available on PATH."
+  echo "Desktop: install Miniconda or Anaconda, then rerun this script."
+  echo "DAIC:"
+  echo "  module use /opt/insy/modulefiles"
+  echo "  module load miniconda"
+  exit 1
 }
 
 get_env_value() {
@@ -54,6 +39,55 @@ set_env_value() {
   else
     printf '%s=%s\n' "$key" "$value" >> "$file"
   fi
+}
+
+prompt_target_environment() {
+  local input_value
+
+  read -r -p "Target environment [desktop/daic] (default: desktop): " input_value
+  input_value="${input_value,,}"
+
+  case "$input_value" in
+    ""|desktop)
+      target_kind="desktop"
+      target_env_name="MIR"
+      target_env_file="environment.yml"
+      ;;
+    daic)
+      target_kind="daic"
+      target_env_name="MIR-daic"
+      target_env_file="environment-daic.yml"
+      ;;
+    *)
+      echo "Unknown target: $input_value"
+      echo "Use 'desktop' or 'daic'."
+      exit 1
+      ;;
+  esac
+}
+
+conda_env_exists() {
+  local env_name="$1"
+  conda env list | awk 'NF > 0 && $1 !~ /^#/ { print $1 }' | grep -Fx "$env_name" >/dev/null 2>&1
+}
+
+create_or_update_target_environment() {
+  echo "==> Setting up conda environment for $target_kind..."
+  (
+    cd "$ENVROOT"
+    if conda_env_exists "$target_env_name"; then
+      echo "    Updating existing environment: $target_env_name"
+      conda env update -n "$target_env_name" -f "$target_env_file" --prune
+    else
+      echo "    Creating environment: $target_env_name"
+      conda env create -f "$target_env_file"
+    fi
+  )
+}
+
+activate_target_environment() {
+  eval "$(conda shell.bash hook)"
+  conda activate "$target_env_name"
 }
 
 prompt_path_value() {
@@ -110,16 +144,25 @@ if $created_env || [[ "$(get_env_value MIR_DATA_ROOT "$ENVFILE")" == /path/to/ms
   prompt_path_value "MIR_CORE_PATH" "Path to mir-core" "$core_default"
 fi
 
-require_python
-install_dvc_if_needed
+require_conda
+prompt_target_environment
 
-echo "==> Installing mir-core (editable)..."
+set -a
+source "$ENVFILE"
+set +a
+
+create_or_update_target_environment
+activate_target_environment
+
+echo "==> Installing mir-core (editable) into $target_env_name..."
 python -m pip install -e "$ROOT/repos/mir-core"
 
-echo "==> Configuring DVC remotes..."
+echo "==> Configuring DVC remotes in $target_env_name..."
 "$ROOT/scripts/setup-dvc.sh"
 
 echo ""
 echo "Workspace initialization complete."
+echo "Target environment: $target_env_name"
 echo "Environment file: $ENVFILE"
+echo "Activate later with: conda activate $target_env_name"
 echo "Data pull: cd $ROOT/repos/mir-data && dvc pull"
