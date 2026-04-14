@@ -37,6 +37,28 @@ load_daic_miniconda() {
   command -v conda >/dev/null 2>&1
 }
 
+load_delftblue_conda() {
+  local candidate
+
+  if command -v conda >/dev/null 2>&1; then
+    return 0
+  fi
+
+  for candidate in \
+    "$HOME/miniconda3/etc/profile.d/conda.sh" \
+    "$HOME/miniforge3/etc/profile.d/conda.sh" \
+    "$HOME/mambaforge/etc/profile.d/conda.sh"
+  do
+    if [[ -f "$candidate" ]]; then
+      # shellcheck disable=SC1090
+      source "$candidate"
+      command -v conda >/dev/null 2>&1 && return 0
+    fi
+  done
+
+  return 1
+}
+
 require_conda() {
   if command -v conda >/dev/null 2>&1; then
     return
@@ -47,6 +69,11 @@ require_conda() {
     if load_daic_miniconda; then
       return
     fi
+  elif [[ "$target_kind" == "delftblue" ]]; then
+    echo "==> Looking for a user-installed Conda on DelftBlue..."
+    if load_delftblue_conda; then
+      return
+    fi
   fi
 
   echo "conda is not available on PATH."
@@ -54,6 +81,8 @@ require_conda() {
   echo "DAIC:"
   echo "  module use /opt/insy/modulefiles"
   echo "  module load miniconda"
+  echo "DelftBlue:"
+  echo "  install Miniconda or Miniforge in \$HOME, then rerun this script"
   exit 1
 }
 
@@ -77,7 +106,7 @@ set_env_value() {
 prompt_target_environment() {
   local input_value
 
-  read -r -p "Target environment [desktop/daic] (default: desktop): " input_value
+  read -r -p "Target environment [desktop/daic/delftblue] (default: desktop): " input_value
   input_value="${input_value,,}"
 
   case "$input_value" in
@@ -91,9 +120,14 @@ prompt_target_environment() {
       target_env_name="MIR-daic"
       target_env_file="environment-daic.yml"
       ;;
+    delftblue)
+      target_kind="delftblue"
+      target_env_name="MIR-delftblue"
+      target_env_file="environment-delftblue.yml"
+      ;;
     *)
       echo "Unknown target: $input_value"
-      echo "Use 'desktop' or 'daic'."
+      echo "Use 'desktop', 'daic', or 'delftblue'."
       exit 1
       ;;
   esac

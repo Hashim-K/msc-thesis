@@ -10,6 +10,7 @@ require_python() {
     echo "Activate a Python 3.10+ environment first, for example:"
     echo "  conda activate MIR"
     echo "  conda activate MIR-daic"
+    echo "  conda activate MIR-delftblue"
     exit 1
   fi
 
@@ -23,6 +24,7 @@ PY
     echo "Activate a compatible environment first, for example:"
     echo "  conda activate MIR"
     echo "  conda activate MIR-daic"
+    echo "  conda activate MIR-delftblue"
     exit 1
   fi
 }

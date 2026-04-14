@@ -12,7 +12,9 @@ cd msc-thesis
 ./scripts/init-workspace.sh
 ```
 
-The script will ask whether you are setting up a `desktop` or `daic` environment and then create or update the matching conda environment for you.
+The script will ask whether you are setting up a `desktop`, `daic`, or
+`delftblue` environment and then create or update the matching conda
+environment for you.
 
 On DAIC, the script will try to load the Miniconda module automatically. If that fails, run:
 
@@ -22,12 +24,19 @@ module load miniconda
 ./scripts/init-workspace.sh
 ```
 
+On DelftBlue, install Miniconda or Miniforge in `$HOME` first. The script will
+try to find one of these standard installs automatically:
+
+- `$HOME/miniconda3`
+- `$HOME/miniforge3`
+- `$HOME/mambaforge`
+
 `init-workspace.sh` will:
 
 - initialize submodules
 - create `.env` from `.env.example` if needed
 - auto-detect workspace repo paths and prompt for overrides when `.env` is first created or still uses placeholders
-- ask whether to set up `desktop` (`MIR`) or `daic` (`MIR-daic`)
+- ask whether to set up `desktop` (`MIR`), `daic` (`MIR-daic`), or `delftblue` (`MIR-delftblue`)
 - create or update the matching conda environment from `repos/mir-environment`
 - activate that environment inside the script
 - install `repos/mir-core` in editable mode into that environment
@@ -39,6 +48,8 @@ After the script finishes, activate the environment in your shell:
 conda activate MIR
 # or
 conda activate MIR-daic
+# or
+conda activate MIR-delftblue
 ```
 
 `update-workspace.sh` will:
@@ -98,6 +109,8 @@ dvc pull
 | `scripts/init-workspace.sh` | First-time setup — submodules, `.env`, `mir-core`, local DVC config |
 | `scripts/update-workspace.sh` | Refresh local workspace configuration after `.env` or credential changes |
 | `scripts/setup-dvc.sh` | Configure local DVC credentials/remotes and optionally pull `mir-data` |
+| `scripts/build-apptainer.sh` | Build the shared Apptainer runtime image |
+| `scripts/apptainer-exec.sh` | Execute a command inside the shared Apptainer image |
 | `scripts/update-repos.sh` | Pull latest on all submodules + update SHA pins |
 | `scripts/run-desktop.sh` | Launch desktop app |
 | `scripts/run-web.sh` | Launch webapp |
@@ -108,3 +121,25 @@ dvc pull
 - No domain logic in this repo — thin launchers and config only
 - Cross-repo references go through installed packages, env vars, or manifests
 - No hard-coded absolute paths — use `MIR_DATA_ROOT`, `MIR_OUTPUTS_ROOT`, `MIR_CORE_PATH`
+
+## Apptainer
+
+The common cluster container assets live under [containers/apptainer](/home/hashim/msc-thesis/containers/apptainer).
+
+Build the shared image:
+
+```bash
+./scripts/build-apptainer.sh
+```
+
+If your host requires unprivileged builds, pass through Apptainer build flags:
+
+```bash
+APPTAINER_BUILD_OPTS="--fakeroot" ./scripts/build-apptainer.sh
+```
+
+Run a command inside it:
+
+```bash
+./scripts/apptainer-exec.sh python -m mir_env.verify_installation
+```

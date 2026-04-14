@@ -1,0 +1,58 @@
+Bootstrap: docker
+From: ubuntu:22.04
+
+%files
+    __ENV_FILE__ /tmp/environment-apptainer.yml
+    __MIR_CORE__ /opt/msc-thesis/repos/mir-core
+
+%labels
+    Author Hashim Karim
+    Description Common MIR runtime for DAIC and DelftBlue
+
+%help
+    Common Apptainer runtime for the MSc thesis MIR stack.
+    Build with:
+      ./scripts/build-apptainer.sh
+    Run with:
+      ./scripts/apptainer-exec.sh python -m mir_env.verify_installation
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update
+    apt-get install -y --no-install-recommends \
+        bzip2 \
+        ca-certificates \
+        curl \
+        ffmpeg \
+        git \
+        libsndfile1 \
+        build-essential
+    rm -rf /var/lib/apt/lists/*
+
+    curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xj -C /usr/local/bin --strip-components=1 bin/micromamba
+
+    export MAMBA_ROOT_PREFIX=/opt/micromamba
+    micromamba create -y -n MIR-apptainer -f /tmp/environment-apptainer.yml
+
+    eval "$(micromamba shell hook -s bash)"
+    micromamba activate MIR-apptainer
+
+    python -m pip install -e /opt/msc-thesis/repos/mir-core
+
+    micromamba clean -a -y
+    python -m pip cache purge || true
+
+%environment
+    export MAMBA_ROOT_PREFIX=/opt/micromamba
+    export PATH=/opt/micromamba/envs/MIR-apptainer/bin:$PATH
+    export CONDA_DEFAULT_ENV=MIR-apptainer
+    export LC_ALL=C.UTF-8
+    export LANG=C.UTF-8
+
+%runscript
+    export MAMBA_ROOT_PREFIX=/opt/micromamba
+    export PATH=/opt/micromamba/envs/MIR-apptainer/bin:$PATH
+    if [ $# -eq 0 ]; then
+        exec bash
+    fi
+    exec "$@"
