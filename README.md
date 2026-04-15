@@ -113,6 +113,7 @@ dvc pull
 | `scripts/build-apptainer.sh` | Build the shared Apptainer runtime image |
 | `scripts/apptainer-exec.sh` | Execute a command inside the shared Apptainer image |
 | `scripts/publish-run.sh` | Archive one completed live run into `mir-outputs` |
+| `scripts/smoke-test-env.sh` | Verify env activation, path model, and optional DVC pull |
 | `scripts/update-repos.sh` | Pull latest on all submodules + update SHA pins |
 | `scripts/run-desktop.sh` | Launch desktop app |
 | `scripts/run-web.sh` | Launch webapp |
@@ -158,3 +159,17 @@ completed attempts with:
 Archived runs land in `repos/mir-outputs/runs/<experiment_hash>/<attempt_id>/`.
 Small metadata files stay in Git, while `checkpoints/` and `logs/` are tracked
 with DVC and stored through the shared cache under `MIR_SHARED_ROOT`.
+
+## Smoke Tests
+
+Verify one environment end-to-end with:
+
+```bash
+./scripts/smoke-test-env.sh daic --pull-test
+./scripts/smoke-test-env.sh daic-experimental --pull-test
+./scripts/smoke-test-env.sh delftblue --pull-test
+```
+
+The script activates the target environment, runs
+`python -m mir_env.verify_installation`, prints the configured path model, and
+optionally performs a small `dvc pull` smoke test from `mir-data`.
