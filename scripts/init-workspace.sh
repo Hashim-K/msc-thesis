@@ -177,12 +177,48 @@ bootstrap_micromamba() {
   printf '%s\n' "$micromamba_bin"
 }
 
+debug_env_setup() {
+  if [[ "${MIR_DEBUG_ENV_SETUP:-0}" != "1" ]]; then
+    return
+  fi
+
+  echo "==> Environment setup debug"
+  echo "target_kind=$target_kind"
+  echo "target_env_name=$target_env_name"
+  echo "target_env_file=$target_env_file"
+  echo "target_env_prefix=$target_env_prefix"
+  echo "pwd=$(pwd)"
+  echo "hostname=$(hostname)"
+  echo "PATH=$PATH"
+  echo "conda=$(command -v conda || echo missing)"
+  echo "mamba=$(command -v mamba || echo missing)"
+  echo "micromamba=$(command -v micromamba || echo missing)"
+  if command -v conda >/dev/null 2>&1; then
+    echo "conda_version=$(conda --version 2>&1)"
+  fi
+  if command -v mamba >/dev/null 2>&1; then
+    echo "mamba_version=$(mamba --version 2>&1)"
+  fi
+  if command -v micromamba >/dev/null 2>&1; then
+    echo "micromamba_version=$(micromamba --version 2>&1)"
+  fi
+  echo "conda_supports_solver_flag=$(conda_supports_solver_flag && echo yes || echo no)"
+  if command -v free >/dev/null 2>&1; then
+    free -h || true
+  fi
+  if command -v ulimit >/dev/null 2>&1; then
+    ulimit -a || true
+  fi
+  echo "env_file_exists=$( [[ -f "$ENVROOT/$target_env_file" ]] && echo yes || echo no )"
+}
+
 run_conda_env_command() {
   local mode="$1"
   local env_file="$2"
   local micromamba_bin=""
 
   if command -v mamba >/dev/null 2>&1; then
+    echo "    Solver path: mamba"
     if [[ "$mode" == "create" ]]; then
       mamba env create -f "$env_file"
     else
@@ -194,6 +230,7 @@ run_conda_env_command() {
   if [[ "$target_kind" == "daic" || "$target_kind" == "delftblue" ]]; then
     micromamba_bin="$(bootstrap_micromamba)" || micromamba_bin=""
     if [[ -n "$micromamba_bin" && -x "$micromamba_bin" ]]; then
+      echo "    Solver path: micromamba ($micromamba_bin)"
       if [[ "$mode" == "create" ]]; then
         "$micromamba_bin" create -y -p "$target_env_prefix" -f "$env_file"
       else
@@ -204,6 +241,7 @@ run_conda_env_command() {
   fi
 
   if conda_supports_solver_flag; then
+    echo "    Solver path: conda --solver=libmamba"
     if [[ "$mode" == "create" ]]; then
       conda env create --solver=libmamba -f "$env_file"
     else
@@ -212,6 +250,7 @@ run_conda_env_command() {
     return
   fi
 
+  echo "    Solver path: classic conda"
   if [[ "$mode" == "create" ]]; then
     conda env create -f "$env_file"
   else
@@ -223,6 +262,7 @@ create_or_update_target_environment() {
   echo "==> Setting up conda environment for $target_kind..."
   (
     cd "$ENVROOT"
+    debug_env_setup
     if conda_env_exists "$target_env_name"; then
       echo "    Updating existing environment: $target_env_name"
       run_conda_env_command "update" "$target_env_file"
