@@ -32,15 +32,19 @@ try to find one of these standard installs automatically:
 - `$HOME/miniforge3`
 - `$HOME/mambaforge`
 
+For `daic` and `delftblue`, `init-workspace.sh` now creates a minimal
+`MIR-hpc` bootstrap environment for DVC and lightweight helper scripts. The
+full training/runtime stack is provided by the shared Apptainer image.
+
 `init-workspace.sh` will:
 
 - initialize submodules
 - create `.env` from `.env.example` if needed
 - auto-detect workspace repo paths and prompt for overrides when `.env` is first created or still uses placeholders
-- ask whether to set up `desktop` (`MIR`), `daic` (`MIR-daic`), or `delftblue` (`MIR-delftblue`)
+- ask whether to set up `desktop` (`MIR`), `daic` (`MIR-hpc`), or `delftblue` (`MIR-hpc`)
 - create or update the matching conda environment from `repos/mir-environment`
 - activate that environment inside the script
-- install `repos/mir-core` in editable mode into that environment
+- install `repos/mir-core` in editable mode only for the desktop env
 - run `./scripts/setup-dvc.sh`
 
 After the script finishes, activate the environment in your shell:
@@ -48,9 +52,7 @@ After the script finishes, activate the environment in your shell:
 ```bash
 conda activate MIR
 # or
-conda activate MIR-daic
-# or
-conda activate MIR-delftblue
+conda activate MIR-hpc
 ```
 
 `update-workspace.sh` will:
@@ -115,6 +117,7 @@ dvc pull
 | `scripts/apptainer-exec.sh` | Execute a command inside the shared Apptainer image |
 | `scripts/publish-run.sh` | Archive one completed live run into `mir-outputs` |
 | `scripts/smoke-test-env.sh` | Verify env activation, path model, and optional DVC pull |
+| `scripts/smoke-test-apptainer.sh` | Verify the shared Apptainer runtime image |
 | `scripts/update-repos.sh` | Pull latest on all submodules + update SHA pins |
 | `scripts/run-desktop.sh` | Launch desktop app |
 | `scripts/run-web.sh` | Launch webapp |
@@ -163,7 +166,7 @@ with DVC and stored through the shared cache under `MIR_SHARED_ROOT`.
 
 ## Smoke Tests
 
-Verify one environment end-to-end with:
+Verify one bootstrap environment end-to-end with:
 
 ```bash
 ./scripts/smoke-test-env.sh daic --pull-test
@@ -171,6 +174,12 @@ Verify one environment end-to-end with:
 ./scripts/smoke-test-env.sh delftblue --pull-test
 ```
 
-The script activates the target environment, runs
-`python -m mir_env.verify_installation`, prints the configured path model, and
-optionally performs a small `dvc pull` smoke test from `mir-data`.
+The script activates the target bootstrap environment, verifies DVC and a few
+lightweight Python imports, prints the configured path model, and optionally
+performs a small `dvc pull` smoke test from `mir-data`.
+
+Verify the full shared runtime with:
+
+```bash
+./scripts/smoke-test-apptainer.sh
+```

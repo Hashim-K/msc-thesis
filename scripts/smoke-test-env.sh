@@ -120,10 +120,10 @@ case "$TARGET" in
     TARGET_ENV="MIR"
     ;;
   daic|daic-experimental)
-    TARGET_ENV="MIR-daic"
+    TARGET_ENV="MIR-hpc"
     ;;
   delftblue)
-    TARGET_ENV="MIR-delftblue"
+    TARGET_ENV="MIR-hpc"
     ;;
   *)
     usage
@@ -151,8 +151,14 @@ python --version
 echo "python: $(which python)"
 
 echo
-echo "==> mir_env.verify_installation"
-python -m mir_env.verify_installation
+echo "==> Bootstrap environment checks"
+dvc version
+python - <<'PY'
+import yaml
+import click
+import rich
+print("python_imports=ok")
+PY
 
 echo
 echo "==> Path model"

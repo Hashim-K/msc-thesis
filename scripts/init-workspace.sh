@@ -123,13 +123,13 @@ prompt_target_environment() {
       ;;
     daic)
       target_kind="daic"
-      target_env_name="MIR-daic"
-      target_env_file="environment-daic.yml"
+      target_env_name="MIR-hpc"
+      target_env_file="environment-hpc-bootstrap.yml"
       ;;
     delftblue)
       target_kind="delftblue"
-      target_env_name="MIR-delftblue"
-      target_env_file="environment-delftblue.yml"
+      target_env_name="MIR-hpc"
+      target_env_file="environment-hpc-bootstrap.yml"
       ;;
     *)
       echo "Unknown target: $input_value"
@@ -367,7 +367,12 @@ create_or_update_target_environment
 activate_target_environment
 
 echo "==> Installing mir-core (editable) into $target_env_name..."
-python -m pip install -e "$ROOT/repos/mir-core"
+if [[ "$target_kind" == "desktop" ]]; then
+  python -m pip install -e "$ROOT/repos/mir-core"
+else
+  echo "==> Skipping editable mir-core install for $target_kind"
+  echo "    Full runtime is provided by the shared Apptainer image."
+fi
 
 echo "==> Configuring DVC remotes in $target_env_name..."
 "$ROOT/scripts/setup-dvc.sh"

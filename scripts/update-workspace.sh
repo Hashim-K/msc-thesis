@@ -42,7 +42,12 @@ require_python
 install_dvc_if_needed
 
 echo "==> Installing mir-core (editable)..."
-python -m pip install -e "$ROOT/repos/mir-core"
+if [[ "${CONDA_DEFAULT_ENV:-}" == "MIR-hpc" ]]; then
+  echo "==> Skipping editable mir-core install in MIR-hpc"
+  echo "    Full runtime is provided by the shared Apptainer image."
+else
+  python -m pip install -e "$ROOT/repos/mir-core"
+fi
 
 echo "==> Refreshing DVC remotes..."
 "$ROOT/scripts/setup-dvc.sh"
