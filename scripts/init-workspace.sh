@@ -146,37 +146,6 @@ conda_env_exists() {
   conda env list | awk 'NF > 0 && $1 !~ /^#/ { print $1 }' | grep -Fx "$env_name" >/dev/null 2>&1
 }
 
-conda_supports_solver_flag() {
-  conda env create --help 2>/dev/null | grep -q -- "--solver"
-}
-
-bootstrap_micromamba() {
-  local micromamba_bin="$HOME/.local/bin/micromamba"
-  local install_dir
-  install_dir="$(dirname "$micromamba_bin")"
-
-  if [[ -x "$micromamba_bin" ]]; then
-    printf '%s\n' "$micromamba_bin"
-    return 0
-  fi
-
-  mkdir -p "$install_dir"
-
-  if command -v curl >/dev/null 2>&1; then
-    curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest \
-      | tar -xj -C "$install_dir" --strip-components=1 bin/micromamba
-  elif command -v wget >/dev/null 2>&1; then
-    wget -qO- https://micro.mamba.pm/api/micromamba/linux-64/latest \
-      | tar -xj -C "$install_dir" --strip-components=1 bin/micromamba
-  else
-    echo "Neither curl nor wget is available to install micromamba."
-    return 1
-  fi
-
-  chmod +x "$micromamba_bin"
-  printf '%s\n' "$micromamba_bin"
-}
-
 debug_env_setup() {
   if [[ "${MIR_DEBUG_ENV_SETUP:-0}" != "1" ]]; then
     return
@@ -191,18 +160,9 @@ debug_env_setup() {
   echo "hostname=$(hostname)"
   echo "PATH=$PATH"
   echo "conda=$(command -v conda || echo missing)"
-  echo "mamba=$(command -v mamba || echo missing)"
-  echo "micromamba=$(command -v micromamba || echo missing)"
   if command -v conda >/dev/null 2>&1; then
     echo "conda_version=$(conda --version 2>&1)"
   fi
-  if command -v mamba >/dev/null 2>&1; then
-    echo "mamba_version=$(mamba --version 2>&1)"
-  fi
-  if command -v micromamba >/dev/null 2>&1; then
-    echo "micromamba_version=$(micromamba --version 2>&1)"
-  fi
-  echo "conda_supports_solver_flag=$(conda_supports_solver_flag && echo yes || echo no)"
   if command -v free >/dev/null 2>&1; then
     free -h || true
   fi
@@ -215,42 +175,7 @@ debug_env_setup() {
 run_conda_env_command() {
   local mode="$1"
   local env_file="$2"
-  local micromamba_bin=""
-
-  if command -v mamba >/dev/null 2>&1; then
-    echo "    Solver path: mamba"
-    if [[ "$mode" == "create" ]]; then
-      mamba env create -f "$env_file"
-    else
-      mamba env update -n "$target_env_name" -f "$env_file" --prune
-    fi
-    return
-  fi
-
-  if [[ "$target_kind" == "daic" || "$target_kind" == "delftblue" ]]; then
-    micromamba_bin="$(bootstrap_micromamba)" || micromamba_bin=""
-    if [[ -n "$micromamba_bin" && -x "$micromamba_bin" ]]; then
-      echo "    Solver path: micromamba ($micromamba_bin)"
-      if [[ "$mode" == "create" ]]; then
-        "$micromamba_bin" create -y -p "$target_env_prefix" -f "$env_file"
-      else
-        "$micromamba_bin" env update -y -p "$target_env_prefix" -f "$env_file" --prune
-      fi
-      return
-    fi
-  fi
-
-  if conda_supports_solver_flag; then
-    echo "    Solver path: conda --solver=libmamba"
-    if [[ "$mode" == "create" ]]; then
-      conda env create --solver=libmamba -f "$env_file"
-    else
-      conda env update --solver=libmamba -n "$target_env_name" -f "$env_file" --prune
-    fi
-    return
-  fi
-
-  echo "    Solver path: classic conda"
+  echo "    Solver path: conda"
   if [[ "$mode" == "create" ]]; then
     conda env create -f "$env_file"
   else

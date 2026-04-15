@@ -14,8 +14,7 @@ cd msc-thesis
 
 The script will ask whether you are setting up a `desktop`, `daic`, or
 `delftblue` environment and then create or update the matching conda
-environment for you. When available, it prefers `mamba` or Conda's
-`libmamba` solver to avoid the classic solver being killed on HPC login nodes.
+environment for you.
 
 On DAIC, the script will try to load the Miniconda module automatically. If that fails, run:
 
@@ -58,9 +57,13 @@ conda activate MIR-hpc
 `update-workspace.sh` will:
 
 - require Python 3.10+ in the active environment
-- refresh `dvc[s3]` in the active Python environment
+- refresh `dvc[s3]` in the active Python environment for desktop envs
 - refresh the editable `repos/mir-core` install
 - rerun `./scripts/setup-dvc.sh`
+
+In `MIR-hpc`, it skips both DVC pip installs and the editable `mir-core`
+install, because the bootstrap env stays minimal and the full runtime lives in
+Apptainer.
 
 Use it when `.env`, MinIO credentials, or local workspace configuration changes.
 

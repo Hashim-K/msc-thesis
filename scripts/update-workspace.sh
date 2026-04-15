@@ -9,8 +9,7 @@ require_python() {
     echo "Python is not available on PATH."
     echo "Activate a Python 3.10+ environment first, for example:"
     echo "  conda activate MIR"
-    echo "  conda activate MIR-daic"
-    echo "  conda activate MIR-delftblue"
+    echo "  conda activate MIR-hpc"
     exit 1
   fi
 
@@ -23,13 +22,18 @@ PY
     echo "Current interpreter: $(python --version 2>&1)"
     echo "Activate a compatible environment first, for example:"
     echo "  conda activate MIR"
-    echo "  conda activate MIR-daic"
-    echo "  conda activate MIR-delftblue"
+    echo "  conda activate MIR-hpc"
     exit 1
   fi
 }
 
 install_dvc_if_needed() {
+  if [[ "${CONDA_DEFAULT_ENV:-}" == "MIR-hpc" ]]; then
+    echo "==> Skipping DVC install in MIR-hpc"
+    echo "    The bootstrap env should get DVC from conda via init-workspace.sh."
+    return
+  fi
+
   if command -v dvc >/dev/null 2>&1 && python -m pip show dvc >/dev/null 2>&1; then
     echo "==> DVC already installed in the active Python environment, skipping"
   else
