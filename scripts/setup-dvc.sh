@@ -48,6 +48,10 @@ source "$env_file"
 set +a
 
 : "${MINIO_ENDPOINT:?MINIO_ENDPOINT missing from .env}"
+: "${MIR_SHARED_ROOT:?MIR_SHARED_ROOT missing from .env}"
+
+shared_cache_dir="$MIR_SHARED_ROOT/dvc-cache"
+mkdir -p "$shared_cache_dir"
 
 if [[ "$AWS_ACCESS_KEY_ID" == "your-minio-access-key" ]] || [[ "$AWS_SECRET_ACCESS_KEY" == "your-minio-secret-key" ]]; then
   echo "Skipping DVC remote setup"
@@ -72,6 +76,8 @@ configure_remote() {
     dvc remote modify origin endpointurl "$MINIO_ENDPOINT"
     dvc remote modify --local origin access_key_id "$AWS_ACCESS_KEY_ID"
     dvc remote modify --local origin secret_access_key "$AWS_SECRET_ACCESS_KEY"
+    dvc config --local cache.dir "$shared_cache_dir"
+    dvc config --local cache.type symlink
     dvc remote list
   )
   echo
@@ -81,6 +87,7 @@ configure_remote "$workspace_root/repos/mir-data" "mir-data"
 configure_remote "$workspace_root/repos/mir-outputs" "mir-outputs"
 
 echo "DVC remotes configured. Credentials were written to .dvc/config.local files, which are ignored by Git."
+echo "Shared DVC cache: $shared_cache_dir"
 
 read -r -p "Pull mir-data DVC data now? [y/N]: " pull_now
 case "$pull_now" in

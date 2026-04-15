@@ -2,7 +2,6 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-IMAGE="${APPTAINER_IMAGE:-$ROOT/containers/apptainer/mir-common.sif}"
 USE_NV="yes"
 
 if [[ $# -eq 0 ]]; then
@@ -25,21 +24,25 @@ if ! command -v apptainer >/dev/null 2>&1; then
   exit 1
 fi
 
+set -a
+source "$ROOT/.env"
+set +a
+
+IMAGE="${APPTAINER_IMAGE:-${IMAGE:-$ROOT/containers/apptainer/mir-common.sif}}"
+
 if [[ ! -f "$IMAGE" ]]; then
   echo "Missing Apptainer image: $IMAGE"
   echo "Build it first with: $ROOT/scripts/build-apptainer.sh"
   exit 1
 fi
 
-set -a
-source "$ROOT/.env"
-set +a
-
 binds=(
   "$ROOT:$ROOT"
   "$MIR_DATA_ROOT:$MIR_DATA_ROOT"
   "$MIR_OUTPUTS_ROOT:$MIR_OUTPUTS_ROOT"
   "$MIR_CORE_PATH:$MIR_CORE_PATH"
+  "$MIR_SHARED_ROOT:$MIR_SHARED_ROOT"
+  "$MIR_RUNS_ROOT:$MIR_RUNS_ROOT"
 )
 
 args=(exec)

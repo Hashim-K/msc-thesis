@@ -5,8 +5,16 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TEMPLATE="$ROOT/containers/apptainer/mir-common.def.in"
 ENV_FILE="$ROOT/repos/mir-environment/environment-apptainer.yml"
 MIR_CORE_DIR="$ROOT/repos/mir-core"
-OUTPUT_IMAGE="${1:-$ROOT/containers/apptainer/mir-common.sif}"
 BUILD_OPTS="${APPTAINER_BUILD_OPTS:-}"
+
+if [[ -f "$ROOT/.env" ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source "$ROOT/.env"
+  set +a
+fi
+
+OUTPUT_IMAGE="${1:-${APPTAINER_IMAGE:-$ROOT/containers/apptainer/mir-common.sif}}"
 
 if ! command -v apptainer >/dev/null 2>&1; then
   echo "apptainer is not available on PATH."

@@ -1,14 +1,24 @@
 #!/usr/bin/env bash
-# promote-model.sh <run-id> <model-id>
+# promote-model.sh <experiment_hash>/<attempt_id> <model-id>
+# promote-model.sh <experiment_hash> <attempt_id> <model-id>
 # Promotes a checkpoint from mir-outputs to mir-data/weights.
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 [ -f "$ROOT/.env" ] && source "$ROOT/.env"
- 
-RUN_ID="${1:?Usage: promote-model.sh <run-id> <model-id>}"
-MODEL_ID="${2:?Usage: promote-model.sh <run-id> <model-id>}"
- 
-SRC="${MIR_OUTPUTS_ROOT}/runs/${RUN_ID}/checkpoints"
+
+if [[ $# -eq 2 ]]; then
+  RUN_REF="${1:?Usage: promote-model.sh <experiment_hash>/<attempt_id> <model-id>}"
+  MODEL_ID="${2:?Usage: promote-model.sh <experiment_hash>/<attempt_id> <model-id>}"
+elif [[ $# -eq 3 ]]; then
+  RUN_REF="${1:?Usage: promote-model.sh <experiment_hash> <attempt_id> <model-id>}/${2:?Usage: promote-model.sh <experiment_hash> <attempt_id> <model-id>}"
+  MODEL_ID="${3:?Usage: promote-model.sh <experiment_hash> <attempt_id> <model-id>}"
+else
+  echo "Usage: promote-model.sh <experiment_hash>/<attempt_id> <model-id>"
+  echo "   or: promote-model.sh <experiment_hash> <attempt_id> <model-id>"
+  exit 1
+fi
+
+SRC="${MIR_OUTPUTS_ROOT}/runs/${RUN_REF}/checkpoints"
 DST="${MIR_DATA_ROOT}/weights/${MODEL_ID}"
  
 [ -d "$SRC" ] || { echo "ERROR: Not found: $SRC"; exit 1; }
@@ -19,7 +29,7 @@ cp -r "$SRC/." "$DST/"
 cat > "$DST/manifest.json" <<MANIFEST
 {
   "model_id": "$MODEL_ID",
-  "source_run_id": "$RUN_ID",
+  "source_run_id": "$RUN_REF",
   "promoted_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
   "task": "",
   "architecture": "",
@@ -27,7 +37,7 @@ cat > "$DST/manifest.json" <<MANIFEST
 }
 MANIFEST
  
-echo "Promoted: $RUN_ID -> $DST"
+echo "Promoted: $RUN_REF -> $DST"
 echo ""
 echo "Next steps:"
 echo "  cd $MIR_DATA_ROOT"

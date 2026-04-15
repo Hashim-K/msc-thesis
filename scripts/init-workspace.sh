@@ -92,6 +92,11 @@ get_env_value() {
   awk -F= -v key="$key" '$1 == key {sub(/^[^=]*=/, "", $0); print $0; exit}' "$file"
 }
 
+is_placeholder_value() {
+  local value="$1"
+  [[ -z "$value" || "$value" == /path/to/* ]]
+}
+
 set_env_value() {
   local key="$1"
   local value="$2"
@@ -166,7 +171,7 @@ prompt_path_value() {
   local input_value
 
   current_value="$(get_env_value "$key" "$ENVFILE")"
-  if [[ -n "$current_value" && "$current_value" != /path/to/msc-thesis/* ]]; then
+  if ! is_placeholder_value "$current_value"; then
     prompt_value="$current_value"
   else
     prompt_value="$default_value"
@@ -200,27 +205,42 @@ else
   echo "    .env already exists, skipping"
 fi
 
+prompt_target_environment
+
 data_default="$ROOT/repos/mir-data"
 outputs_default="$ROOT/repos/mir-outputs"
 core_default="$ROOT/repos/mir-core"
+if [[ "$target_kind" == "daic" || "$target_kind" == "delftblue" ]]; then
+  shared_default="/tudelft.net/staff-umbrella/mirworkspace"
+else
+  shared_default="$ROOT/shared"
+fi
+runs_default="$shared_default/runs"
+apptainer_default="$shared_default/containers/mir-common.sif"
 
-if $created_env || [[ "$(get_env_value MIR_DATA_ROOT "$ENVFILE")" == /path/to/msc-thesis/* ]] || [[ "$(get_env_value MIR_OUTPUTS_ROOT "$ENVFILE")" == /path/to/msc-thesis/* ]] || [[ "$(get_env_value MIR_CORE_PATH "$ENVFILE")" == /path/to/msc-thesis/* ]]; then
+if $created_env || is_placeholder_value "$(get_env_value MIR_DATA_ROOT "$ENVFILE")" || is_placeholder_value "$(get_env_value MIR_OUTPUTS_ROOT "$ENVFILE")" || is_placeholder_value "$(get_env_value MIR_CORE_PATH "$ENVFILE")" || is_placeholder_value "$(get_env_value MIR_SHARED_ROOT "$ENVFILE")" || is_placeholder_value "$(get_env_value MIR_RUNS_ROOT "$ENVFILE")" || is_placeholder_value "$(get_env_value APPTAINER_IMAGE "$ENVFILE")"; then
   echo "==> Workspace paths..."
   prompt_path_value "MIR_DATA_ROOT" "Path to mir-data" "$data_default"
   prompt_path_value "MIR_OUTPUTS_ROOT" "Path to mir-outputs" "$outputs_default"
   prompt_path_value "MIR_CORE_PATH" "Path to mir-core" "$core_default"
+  prompt_path_value "MIR_SHARED_ROOT" "Path to shared project storage" "$shared_default"
+  prompt_path_value "MIR_RUNS_ROOT" "Path to live run staging" "$runs_default"
+  prompt_path_value "APPTAINER_IMAGE" "Path to shared Apptainer image" "$apptainer_default"
 fi
 
 export MIR_DATA_ROOT="$(get_env_value MIR_DATA_ROOT "$ENVFILE")"
 export MIR_OUTPUTS_ROOT="$(get_env_value MIR_OUTPUTS_ROOT "$ENVFILE")"
 export MIR_CORE_PATH="$(get_env_value MIR_CORE_PATH "$ENVFILE")"
-
-prompt_target_environment
+export MIR_SHARED_ROOT="$(get_env_value MIR_SHARED_ROOT "$ENVFILE")"
+export MIR_RUNS_ROOT="$(get_env_value MIR_RUNS_ROOT "$ENVFILE")"
+export APPTAINER_IMAGE="$(get_env_value APPTAINER_IMAGE "$ENVFILE")"
 require_conda
 
 set -a
 source "$ENVFILE"
 set +a
+
+mkdir -p "$MIR_SHARED_ROOT/dvc-cache" "$MIR_RUNS_ROOT" "$(dirname "$APPTAINER_IMAGE")"
 
 create_or_update_target_environment
 activate_target_environment
@@ -237,3 +257,4 @@ echo "Target environment: $target_env_name"
 echo "Environment file: $ENVFILE"
 echo "Activate later with: conda activate $target_env_name"
 echo "Data pull: cd $ROOT/repos/mir-data && dvc pull"
+echo "Outputs browse: cd $ROOT/repos/mir-outputs && dvc pull"

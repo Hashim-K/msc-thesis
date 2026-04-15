@@ -65,6 +65,7 @@ Use it when `.env`, MinIO credentials, or local workspace configuration changes.
 
 - prompt for MinIO access key and secret key, while allowing Enter to keep the current `.env` value
 - configure local DVC remotes for `repos/mir-data` and `repos/mir-outputs`
+- configure a shared DVC cache under `MIR_SHARED_ROOT/dvc-cache`
 - optionally run `dvc pull` for `repos/mir-data` when valid MinIO credentials are configured
 
 It does **not**:
@@ -111,6 +112,7 @@ dvc pull
 | `scripts/setup-dvc.sh` | Configure local DVC credentials/remotes and optionally pull `mir-data` |
 | `scripts/build-apptainer.sh` | Build the shared Apptainer runtime image |
 | `scripts/apptainer-exec.sh` | Execute a command inside the shared Apptainer image |
+| `scripts/publish-run.sh` | Archive one completed live run into `mir-outputs` |
 | `scripts/update-repos.sh` | Pull latest on all submodules + update SHA pins |
 | `scripts/run-desktop.sh` | Launch desktop app |
 | `scripts/run-web.sh` | Launch webapp |
@@ -120,7 +122,7 @@ dvc pull
  
 - No domain logic in this repo — thin launchers and config only
 - Cross-repo references go through installed packages, env vars, or manifests
-- No hard-coded absolute paths — use `MIR_DATA_ROOT`, `MIR_OUTPUTS_ROOT`, `MIR_CORE_PATH`
+- No hard-coded absolute paths — use `MIR_DATA_ROOT`, `MIR_OUTPUTS_ROOT`, `MIR_CORE_PATH`, `MIR_SHARED_ROOT`, `MIR_RUNS_ROOT`
 
 ## Apptainer
 
@@ -143,3 +145,16 @@ Run a command inside it:
 ```bash
 ./scripts/apptainer-exec.sh python -m mir_env.verify_installation
 ```
+
+## Outputs
+
+Cluster jobs should write live run artifacts to `MIR_RUNS_ROOT` and publish
+completed attempts with:
+
+```bash
+./scripts/publish-run.sh <experiment_hash> <attempt_id>
+```
+
+Archived runs land in `repos/mir-outputs/runs/<experiment_hash>/<attempt_id>/`.
+Small metadata files stay in Git, while `checkpoints/` and `logs/` are tracked
+with DVC and stored through the shared cache under `MIR_SHARED_ROOT`.
