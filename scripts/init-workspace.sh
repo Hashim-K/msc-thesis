@@ -143,16 +143,49 @@ conda_env_exists() {
   conda env list | awk 'NF > 0 && $1 !~ /^#/ { print $1 }' | grep -Fx "$env_name" >/dev/null 2>&1
 }
 
+conda_supports_solver_flag() {
+  conda env create --help 2>/dev/null | grep -q -- "--solver"
+}
+
+run_conda_env_command() {
+  local mode="$1"
+  local env_file="$2"
+
+  if command -v mamba >/dev/null 2>&1; then
+    if [[ "$mode" == "create" ]]; then
+      mamba env create -f "$env_file"
+    else
+      mamba env update -n "$target_env_name" -f "$env_file" --prune
+    fi
+    return
+  fi
+
+  if conda_supports_solver_flag; then
+    if [[ "$mode" == "create" ]]; then
+      conda env create --solver=libmamba -f "$env_file"
+    else
+      conda env update --solver=libmamba -n "$target_env_name" -f "$env_file" --prune
+    fi
+    return
+  fi
+
+  if [[ "$mode" == "create" ]]; then
+    conda env create -f "$env_file"
+  else
+    conda env update -n "$target_env_name" -f "$env_file" --prune
+  fi
+}
+
 create_or_update_target_environment() {
   echo "==> Setting up conda environment for $target_kind..."
   (
     cd "$ENVROOT"
     if conda_env_exists "$target_env_name"; then
       echo "    Updating existing environment: $target_env_name"
-      conda env update -n "$target_env_name" -f "$target_env_file" --prune
+      run_conda_env_command "update" "$target_env_file"
     else
       echo "    Creating environment: $target_env_name"
-      conda env create -f "$target_env_file"
+      run_conda_env_command "create" "$target_env_file"
     fi
   )
 }

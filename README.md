@@ -14,7 +14,8 @@ cd msc-thesis
 
 The script will ask whether you are setting up a `desktop`, `daic`, or
 `delftblue` environment and then create or update the matching conda
-environment for you.
+environment for you. When available, it prefers `mamba` or Conda's
+`libmamba` solver to avoid the classic solver being killed on HPC login nodes.
 
 On DAIC, the script will try to load the Miniconda module automatically. If that fails, run:
 
