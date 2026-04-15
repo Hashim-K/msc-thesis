@@ -10,6 +10,7 @@ created_env=false
 target_kind=""
 target_env_name=""
 target_env_file=""
+target_env_prefix=""
 
 load_daic_miniconda() {
   if command -v conda >/dev/null 2>&1; then
@@ -140,6 +141,8 @@ prompt_target_environment() {
 
 conda_env_exists() {
   local env_name="$1"
+  local env_prefix="$HOME/.conda/envs/$env_name"
+  [[ -d "$env_prefix" ]] && return 0
   conda env list | awk 'NF > 0 && $1 !~ /^#/ { print $1 }' | grep -Fx "$env_name" >/dev/null 2>&1
 }
 
@@ -147,9 +150,37 @@ conda_supports_solver_flag() {
   conda env create --help 2>/dev/null | grep -q -- "--solver"
 }
 
+bootstrap_micromamba() {
+  local micromamba_bin="$HOME/.local/bin/micromamba"
+  local install_dir
+  install_dir="$(dirname "$micromamba_bin")"
+
+  if [[ -x "$micromamba_bin" ]]; then
+    printf '%s\n' "$micromamba_bin"
+    return 0
+  fi
+
+  mkdir -p "$install_dir"
+
+  if command -v curl >/dev/null 2>&1; then
+    curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest \
+      | tar -xj -C "$install_dir" --strip-components=1 bin/micromamba
+  elif command -v wget >/dev/null 2>&1; then
+    wget -qO- https://micro.mamba.pm/api/micromamba/linux-64/latest \
+      | tar -xj -C "$install_dir" --strip-components=1 bin/micromamba
+  else
+    echo "Neither curl nor wget is available to install micromamba."
+    return 1
+  fi
+
+  chmod +x "$micromamba_bin"
+  printf '%s\n' "$micromamba_bin"
+}
+
 run_conda_env_command() {
   local mode="$1"
   local env_file="$2"
+  local micromamba_bin=""
 
   if command -v mamba >/dev/null 2>&1; then
     if [[ "$mode" == "create" ]]; then
@@ -158,6 +189,18 @@ run_conda_env_command() {
       mamba env update -n "$target_env_name" -f "$env_file" --prune
     fi
     return
+  fi
+
+  if [[ "$target_kind" == "daic" || "$target_kind" == "delftblue" ]]; then
+    micromamba_bin="$(bootstrap_micromamba)" || micromamba_bin=""
+    if [[ -n "$micromamba_bin" && -x "$micromamba_bin" ]]; then
+      if [[ "$mode" == "create" ]]; then
+        "$micromamba_bin" create -y -p "$target_env_prefix" -f "$env_file"
+      else
+        "$micromamba_bin" env update -y -p "$target_env_prefix" -f "$env_file" --prune
+      fi
+      return
+    fi
   fi
 
   if conda_supports_solver_flag; then
@@ -192,7 +235,11 @@ create_or_update_target_environment() {
 
 activate_target_environment() {
   eval "$(conda shell.bash hook)"
-  conda activate "$target_env_name"
+  if [[ -d "$target_env_prefix" ]]; then
+    conda activate "$target_env_prefix"
+  else
+    conda activate "$target_env_name"
+  fi
 }
 
 prompt_path_value() {
@@ -239,6 +286,7 @@ else
 fi
 
 prompt_target_environment
+target_env_prefix="$HOME/.conda/envs/$target_env_name"
 
 data_default="$ROOT/repos/mir-data"
 outputs_default="$ROOT/repos/mir-outputs"
