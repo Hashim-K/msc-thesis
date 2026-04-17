@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# smoke-test-env.sh <desktop|daic|daic-experimental|delftblue> [--pull-test]
+# smoke-test.sh <desktop|daic|daic-experimental|delftblue> [--pull-test]
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -132,7 +132,7 @@ esac
 
 if [[ ! -f "$ENVFILE" ]]; then
   echo "Missing $ENVFILE"
-  echo "Run ./scripts/workspace/init-workspace.sh first."
+  echo "Run ./scripts/workspace/init.sh first."
   exit 1
 fi
 

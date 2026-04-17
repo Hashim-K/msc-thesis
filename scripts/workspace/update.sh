@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# update-workspace.sh — refresh local workspace configuration
+# update.sh — refresh local workspace configuration
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -30,7 +30,7 @@ PY
 install_dvc_if_needed() {
   if [[ "${CONDA_DEFAULT_ENV:-}" == "MIR-hpc" ]]; then
     echo "==> Skipping DVC install in MIR-hpc"
-    echo "    The bootstrap env should get DVC from conda via init-workspace.sh."
+    echo "    The bootstrap env should get DVC from conda via init.sh."
     return
   fi
 
@@ -54,7 +54,7 @@ else
 fi
 
 echo "==> Refreshing DVC remotes..."
-"$ROOT/scripts/workspace/setup-dvc.sh"
+"$ROOT/scripts/workspace/dvc.sh"
 
 echo ""
 echo "Workspace update complete."

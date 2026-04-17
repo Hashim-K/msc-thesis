@@ -48,7 +48,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ ! -f "$ROOT/.env" ]]; then
-  fail "Missing $ROOT/.env. Run ./scripts/workspace/init-workspace.sh first."
+  fail "Missing $ROOT/.env. Run ./scripts/workspace/init.sh first."
 fi
 pass ".env exists"
 

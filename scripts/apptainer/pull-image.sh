@@ -6,7 +6,7 @@ ENVFILE="$ROOT/.env"
 
 if [[ ! -f "$ENVFILE" ]]; then
   echo "Missing $ENVFILE"
-  echo "Run ./scripts/workspace/init-workspace.sh first."
+  echo "Run ./scripts/workspace/init.sh first."
   exit 1
 fi
 

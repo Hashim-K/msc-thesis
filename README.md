@@ -9,7 +9,7 @@ Orchestrator workspace for Hashim Karim's MSc thesis.
 ```bash
 git clone --recurse-submodules git@github.com:Hashim-K/msc-thesis.git
 cd msc-thesis
-./scripts/workspace/init-workspace.sh
+./scripts/workspace/init.sh
 ```
 
 The script will ask whether you are setting up a `desktop`, `daic`, or
@@ -21,7 +21,7 @@ On DAIC, the script will try to load the Miniconda module automatically. If that
 ```bash
 module use /opt/insy/modulefiles
 module load miniconda
-./scripts/workspace/init-workspace.sh
+./scripts/workspace/init.sh
 ```
 
 On DelftBlue, install Miniconda or Miniforge in `$HOME` first. The script will
@@ -31,11 +31,11 @@ try to find one of these standard installs automatically:
 - `$HOME/miniforge3`
 - `$HOME/mambaforge`
 
-For `daic` and `delftblue`, `init-workspace.sh` now creates a minimal
+For `daic` and `delftblue`, `init.sh` now creates a minimal
 `MIR-hpc` bootstrap environment for DVC and lightweight helper scripts. The
 full training/runtime stack is provided by the shared Apptainer image.
 
-`init-workspace.sh` will:
+`init.sh` will:
 
 - initialize submodules
 - create `.env` from `.env.example` if needed
@@ -44,7 +44,7 @@ full training/runtime stack is provided by the shared Apptainer image.
 - create or update the matching conda environment from `repos/mir-environment`
 - activate that environment inside the script
 - install `repos/mir-core` in editable mode only for the desktop env
-- run `./scripts/workspace/setup-dvc.sh`
+- run `./scripts/workspace/dvc.sh`
 
 After the script finishes, activate the environment in your shell:
 
@@ -54,12 +54,12 @@ conda activate MIR
 conda activate MIR-hpc
 ```
 
-`update-workspace.sh` will:
+`update.sh` will:
 
 - require Python 3.10+ in the active environment
 - refresh `dvc[s3]` in the active Python environment for desktop envs
 - refresh the editable `repos/mir-core` install
-- rerun `./scripts/workspace/setup-dvc.sh`
+- rerun `./scripts/workspace/dvc.sh`
 
 In `MIR-hpc`, it skips both DVC pip installs and the editable `mir-core`
 install, because the bootstrap env stays minimal and the full runtime lives in
@@ -67,7 +67,7 @@ Apptainer.
 
 Use it when `.env`, MinIO credentials, or local workspace configuration changes.
 
-`scripts/workspace/setup-dvc.sh` will:
+`scripts/workspace/dvc.sh` will:
 
 - prompt for MinIO access key and secret key, while allowing Enter to keep the current `.env` value
 - configure local DVC remotes for `repos/mir-data` and `repos/mir-outputs`
@@ -79,14 +79,14 @@ It does **not**:
 - run `dvc push`
 - create or modify remote bucket contents
 
-`scripts/workspace/setup-dvc.sh` only updates local DVC configuration in:
+`scripts/workspace/dvc.sh` only updates local DVC configuration in:
 
 - `repos/mir-data/.dvc/config`
 - `repos/mir-data/.dvc/config.local`
 - `repos/mir-outputs/.dvc/config`
 - `repos/mir-outputs/.dvc/config.local`
 
-If you skip the optional pull in `scripts/workspace/setup-dvc.sh`, pull data explicitly:
+If you skip the optional pull in `scripts/workspace/dvc.sh`, pull data explicitly:
 
 ```bash
 cd repos/mir-data
@@ -111,13 +111,17 @@ dvc pull
  
 ## Scripts
  
+Script folders have their own short README files. The parent README keeps the
+high-level map; folder READMEs keep the command-specific notes close to the
+scripts.
+
 | Script | Purpose |
 |--------|---------|
-| `scripts/workspace/init-workspace.sh` | First-time setup — submodules, `.env`, `mir-core`, local DVC config |
-| `scripts/workspace/update-workspace.sh` | Refresh local workspace configuration after `.env` or credential changes |
-| `scripts/workspace/setup-dvc.sh` | Configure local DVC credentials/remotes and optionally pull `mir-data` |
-| `scripts/workspace/smoke-test-env.sh` | Verify env activation, path model, and optional DVC pull |
-| `scripts/workspace/update-repos.sh` | Pull latest on all submodules + update SHA pins |
+| `scripts/workspace/init.sh` | First-time setup — submodules, `.env`, `mir-core`, local DVC config |
+| `scripts/workspace/update.sh` | Refresh local workspace configuration after `.env` or credential changes |
+| `scripts/workspace/dvc.sh` | Configure local DVC credentials/remotes and optionally pull `mir-data` |
+| `scripts/workspace/smoke-test.sh` | Verify env activation, path model, and optional DVC pull |
+| `scripts/workspace/sync.sh` | Pull latest on all submodules + update SHA pins |
 | `scripts/apptainer/build.sh` | Build the shared Apptainer runtime image |
 | `scripts/apptainer/exec.sh` | Execute a command inside the shared Apptainer image |
 | `scripts/apptainer/push-image.sh` | DVC-track and push the built Apptainer image to `mir-containers` |
@@ -125,8 +129,8 @@ dvc pull
 | `scripts/apptainer/smoke-test.sh` | Verify the shared Apptainer runtime image |
 | `scripts/runs/publish-run.sh` | Archive one completed live run into `mir-outputs` |
 | `scripts/runs/promote-model.sh` | Promote checkpoint from outputs to data |
-| `scripts/apps/run-desktop.sh` | Launch desktop app |
-| `scripts/apps/run-web.sh` | Launch webapp |
+| `scripts/desktop/run.sh` | Launch desktop app when implemented |
+| `scripts/webapp/run.sh` | Launch webapp when implemented |
 
 ## Rules
  
@@ -195,9 +199,9 @@ with DVC and stored through the shared cache under `MIR_SHARED_ROOT`.
 Verify one bootstrap environment end-to-end with:
 
 ```bash
-./scripts/workspace/smoke-test-env.sh daic --pull-test
-./scripts/workspace/smoke-test-env.sh daic-experimental --pull-test
-./scripts/workspace/smoke-test-env.sh delftblue --pull-test
+./scripts/workspace/smoke-test.sh daic --pull-test
+./scripts/workspace/smoke-test.sh daic-experimental --pull-test
+./scripts/workspace/smoke-test.sh delftblue --pull-test
 ```
 
 The script activates the target bootstrap environment, verifies DVC and a few

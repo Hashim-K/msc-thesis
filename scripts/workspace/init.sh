@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# init-workspace.sh — first-time setup for the msc-thesis workspace
+# init.sh — first-time setup for the msc-thesis workspace
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -300,7 +300,7 @@ else
 fi
 
 echo "==> Configuring DVC remotes in $target_env_name..."
-"$ROOT/scripts/workspace/setup-dvc.sh"
+"$ROOT/scripts/workspace/dvc.sh"
 
 echo ""
 echo "Workspace initialization complete."

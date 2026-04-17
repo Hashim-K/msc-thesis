@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# update-repos.sh — pull latest on every submodule and update SHA pins
+# sync.sh — pull latest on every submodule and update SHA pins
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
  

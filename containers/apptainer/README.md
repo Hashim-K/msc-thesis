@@ -6,6 +6,9 @@ Files:
 
 - `mir-common.def.in`
   Template definition file used by `scripts/apptainer/build.sh`
+- `images/`
+  Local build output directory. Image payloads are ignored by Git and tracked
+  through DVC.
 
 Outputs:
 
@@ -47,3 +50,6 @@ Pull it on a cluster checkout and link it to `APPTAINER_IMAGE`:
 ```bash
 ./scripts/apptainer/pull-image.sh
 ```
+
+For script-level details, see `scripts/apptainer/README.md` from the workspace
+root.
