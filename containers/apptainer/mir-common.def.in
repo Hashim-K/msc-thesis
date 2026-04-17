@@ -2,8 +2,8 @@ Bootstrap: docker
 From: ubuntu:22.04
 
 %setup
-    mkdir -p "${APPTAINER_ROOTFS}/tmp"
-    cp "__ENV_FILE__" "${APPTAINER_ROOTFS}/tmp/environment-apptainer.yml"
+    mkdir -p "${APPTAINER_ROOTFS}/opt/msc-thesis"
+    cp "__ENV_FILE__" "${APPTAINER_ROOTFS}/opt/msc-thesis/environment-apptainer.yml"
     mkdir -p "${APPTAINER_ROOTFS}/opt/msc-thesis/repos"
     cp -a "__MIR_CORE__" "${APPTAINER_ROOTFS}/opt/msc-thesis/repos/mir-core"
 
@@ -34,7 +34,7 @@ From: ubuntu:22.04
     curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xj -C /usr/local/bin --strip-components=1 bin/micromamba
 
     export MAMBA_ROOT_PREFIX=/opt/micromamba
-    micromamba create -y -n MIR-apptainer -f /tmp/environment-apptainer.yml
+    micromamba create -y -n MIR-apptainer -f /opt/msc-thesis/environment-apptainer.yml
 
     eval "$(micromamba shell hook -s bash)"
     micromamba activate MIR-apptainer
