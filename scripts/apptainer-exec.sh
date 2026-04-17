@@ -24,9 +24,9 @@ if ! command -v apptainer >/dev/null 2>&1; then
   exit 1
 fi
 
-set -a
-source "$ROOT/.env"
-set +a
+# shellcheck disable=SC1091
+source "$ROOT/scripts/lib/env.sh"
+load_env_file "$ROOT/.env"
 
 IMAGE="${APPTAINER_IMAGE:-${IMAGE:-$ROOT/containers/apptainer/mir-common.sif}}"
 

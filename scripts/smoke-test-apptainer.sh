@@ -25,10 +25,9 @@ if ! command -v apptainer >/dev/null 2>&1; then
   exit 1
 fi
 
-set -a
 # shellcheck disable=SC1091
-source "$ROOT/.env"
-set +a
+source "$ROOT/scripts/lib/env.sh"
+load_env_file "$ROOT/.env"
 
 if [[ ! -f "$APPTAINER_IMAGE" ]]; then
   echo "Missing Apptainer image: $APPTAINER_IMAGE"

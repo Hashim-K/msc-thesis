@@ -7,12 +7,9 @@ ENV_FILE="$ROOT/repos/mir-environment/environment-apptainer.yml"
 MIR_CORE_DIR="$ROOT/repos/mir-core"
 BUILD_OPTS="${APPTAINER_BUILD_OPTS:-}"
 
-if [[ -f "$ROOT/.env" ]]; then
-  set -a
-  # shellcheck disable=SC1091
-  source "$ROOT/.env"
-  set +a
-fi
+# shellcheck disable=SC1091
+source "$ROOT/scripts/lib/env.sh"
+load_env_file "$ROOT/.env"
 
 DEFAULT_IMAGE_REL="${APPTAINER_DVC_IMAGE:-containers/apptainer/images/mir-common.sif}"
 OUTPUT_IMAGE="${1:-${APPTAINER_BUILD_IMAGE:-$ROOT/$DEFAULT_IMAGE_REL}}"
