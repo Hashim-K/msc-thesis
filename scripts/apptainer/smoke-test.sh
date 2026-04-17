@@ -29,14 +29,16 @@ fi
 source "$ROOT/scripts/lib/env.sh"
 load_env_file "$ROOT/.env"
 
-if [[ ! -f "$APPTAINER_IMAGE" ]]; then
-  echo "Missing Apptainer image: $APPTAINER_IMAGE"
+IMAGE="${APPTAINER_IMAGE:-$ROOT/${APPTAINER_DVC_IMAGE:-containers/apptainer/images/mir-common.sif}}"
+
+if [[ ! -f "$IMAGE" ]]; then
+  echo "Missing Apptainer image: $IMAGE"
   echo "Build or copy the shared image first."
   exit 1
 fi
 
 echo "==> Apptainer image"
-echo "image=$APPTAINER_IMAGE"
+echo "image=$IMAGE"
 apptainer --version
 
 echo

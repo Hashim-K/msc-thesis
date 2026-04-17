@@ -28,7 +28,7 @@ fi
 source "$ROOT/scripts/lib/env.sh"
 load_env_file "$ROOT/.env"
 
-IMAGE="${APPTAINER_IMAGE:-${IMAGE:-$ROOT/containers/apptainer/mir-common.sif}}"
+IMAGE="${APPTAINER_IMAGE:-${IMAGE:-$ROOT/${APPTAINER_DVC_IMAGE:-containers/apptainer/images/mir-common.sif}}}"
 
 if [[ ! -f "$IMAGE" ]]; then
   echo "Missing Apptainer image: $IMAGE"
@@ -36,14 +36,19 @@ if [[ ! -f "$IMAGE" ]]; then
   exit 1
 fi
 
-binds=(
-  "$ROOT:$ROOT"
-  "$MIR_DATA_ROOT:$MIR_DATA_ROOT"
-  "$MIR_OUTPUTS_ROOT:$MIR_OUTPUTS_ROOT"
-  "$MIR_CORE_PATH:$MIR_CORE_PATH"
-  "$MIR_SHARED_ROOT:$MIR_SHARED_ROOT"
-  "$MIR_RUNS_ROOT:$MIR_RUNS_ROOT"
-)
+binds=("$ROOT:$ROOT")
+
+add_bind_if_set() {
+  local value="$1"
+  [[ -n "$value" && -e "$value" ]] || return 0
+  binds+=("$value:$value")
+}
+
+add_bind_if_set "${MIR_DATA_ROOT:-}"
+add_bind_if_set "${MIR_OUTPUTS_ROOT:-}"
+add_bind_if_set "${MIR_CORE_PATH:-}"
+add_bind_if_set "${MIR_SHARED_ROOT:-}"
+add_bind_if_set "${MIR_RUNS_ROOT:-}"
 
 args=(exec)
 if [[ "$USE_NV" == "yes" ]]; then
