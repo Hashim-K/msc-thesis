@@ -14,9 +14,9 @@ From: ubuntu:22.04
 %help
     Common Apptainer runtime for the MSc thesis MIR stack.
     Build with:
-      ./scripts/build-apptainer.sh
+      ./scripts/apptainer/build.sh
     Run with:
-      ./scripts/apptainer-exec.sh python -m mir_env.verify_installation
+      ./scripts/apptainer/exec.sh python -m mir_env.verify_installation
 
 %post
     export DEBIAN_FRONTEND=noninteractive

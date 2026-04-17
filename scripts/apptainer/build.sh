@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 TEMPLATE="$ROOT/containers/apptainer/mir-common.def.in"
 ENV_FILE="$ROOT/repos/mir-environment/environment-apptainer.yml"
 MIR_CORE_DIR="$ROOT/repos/mir-core"

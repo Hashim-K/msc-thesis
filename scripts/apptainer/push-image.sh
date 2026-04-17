@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 ENVFILE="$ROOT/.env"
 
 if [[ ! -f "$ENVFILE" ]]; then
   echo "Missing $ENVFILE"
-  echo "Run ./scripts/init-workspace.sh first."
+  echo "Run ./scripts/workspace/init-workspace.sh first."
   exit 1
 fi
 
@@ -25,7 +25,7 @@ IMAGE_PATH="$ROOT/$IMAGE_REL"
 if [[ ! -f "$IMAGE_PATH" ]]; then
   echo "Missing Apptainer image: $IMAGE_PATH"
   echo "Build it first with:"
-  echo "  ./scripts/build-apptainer.sh"
+  echo "  ./scripts/apptainer/build.sh"
   exit 1
 fi
 

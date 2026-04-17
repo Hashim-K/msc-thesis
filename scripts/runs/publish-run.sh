@@ -4,7 +4,7 @@
 # and Git-pushes the per-run metadata.
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 ENVFILE="$ROOT/.env"
 
 if [[ ! -f "$ENVFILE" ]]; then

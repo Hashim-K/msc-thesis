@@ -5,7 +5,7 @@ This directory contains the shared Apptainer build assets for cluster jobs.
 Files:
 
 - `mir-common.def.in`
-  Template definition file used by `scripts/build-apptainer.sh`
+  Template definition file used by `scripts/apptainer/build.sh`
 
 Outputs:
 
@@ -32,18 +32,18 @@ Runtime data and output paths are still provided by bind mounts and env vars:
 Build locally:
 
 ```bash
-./scripts/build-apptainer.sh
+./scripts/apptainer/build.sh
 ```
 
 Push the image to the dedicated DVC remote backed by the `mir-containers`
 MinIO bucket:
 
 ```bash
-./scripts/push-apptainer-image.sh
+./scripts/apptainer/push-image.sh
 ```
 
 Pull it on a cluster checkout and link it to `APPTAINER_IMAGE`:
 
 ```bash
-./scripts/pull-apptainer-image.sh
+./scripts/apptainer/pull-image.sh
 ```

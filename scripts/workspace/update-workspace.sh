@@ -2,7 +2,7 @@
 # update-workspace.sh — refresh local workspace configuration
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 require_python() {
   if ! command -v python >/dev/null 2>&1; then
@@ -54,7 +54,7 @@ else
 fi
 
 echo "==> Refreshing DVC remotes..."
-"$ROOT/scripts/setup-dvc.sh"
+"$ROOT/scripts/workspace/setup-dvc.sh"
 
 echo ""
 echo "Workspace update complete."

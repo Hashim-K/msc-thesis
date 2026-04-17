@@ -3,7 +3,7 @@
 # promote-model.sh <experiment_hash> <attempt_id> <model-id>
 # Promotes a checkpoint from mir-outputs to mir-data/weights.
 set -euo pipefail
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 # shellcheck disable=SC1091
 source "$ROOT/scripts/lib/env.sh"
 load_env_file "$ROOT/.env"

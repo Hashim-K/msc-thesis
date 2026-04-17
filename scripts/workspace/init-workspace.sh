@@ -2,7 +2,7 @@
 # init-workspace.sh — first-time setup for the msc-thesis workspace
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 ENVFILE="$ROOT/.env"
 ENVEXAMPLE="$ROOT/.env.example"
 ENVROOT="$ROOT/repos/mir-environment"
@@ -300,7 +300,7 @@ else
 fi
 
 echo "==> Configuring DVC remotes in $target_env_name..."
-"$ROOT/scripts/setup-dvc.sh"
+"$ROOT/scripts/workspace/setup-dvc.sh"
 
 echo ""
 echo "Workspace initialization complete."

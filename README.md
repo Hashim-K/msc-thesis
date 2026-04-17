@@ -9,7 +9,7 @@ Orchestrator workspace for Hashim Karim's MSc thesis.
 ```bash
 git clone --recurse-submodules git@github.com:Hashim-K/msc-thesis.git
 cd msc-thesis
-./scripts/init-workspace.sh
+./scripts/workspace/init-workspace.sh
 ```
 
 The script will ask whether you are setting up a `desktop`, `daic`, or
@@ -21,7 +21,7 @@ On DAIC, the script will try to load the Miniconda module automatically. If that
 ```bash
 module use /opt/insy/modulefiles
 module load miniconda
-./scripts/init-workspace.sh
+./scripts/workspace/init-workspace.sh
 ```
 
 On DelftBlue, install Miniconda or Miniforge in `$HOME` first. The script will
@@ -44,7 +44,7 @@ full training/runtime stack is provided by the shared Apptainer image.
 - create or update the matching conda environment from `repos/mir-environment`
 - activate that environment inside the script
 - install `repos/mir-core` in editable mode only for the desktop env
-- run `./scripts/setup-dvc.sh`
+- run `./scripts/workspace/setup-dvc.sh`
 
 After the script finishes, activate the environment in your shell:
 
@@ -59,7 +59,7 @@ conda activate MIR-hpc
 - require Python 3.10+ in the active environment
 - refresh `dvc[s3]` in the active Python environment for desktop envs
 - refresh the editable `repos/mir-core` install
-- rerun `./scripts/setup-dvc.sh`
+- rerun `./scripts/workspace/setup-dvc.sh`
 
 In `MIR-hpc`, it skips both DVC pip installs and the editable `mir-core`
 install, because the bootstrap env stays minimal and the full runtime lives in
@@ -67,7 +67,7 @@ Apptainer.
 
 Use it when `.env`, MinIO credentials, or local workspace configuration changes.
 
-`scripts/setup-dvc.sh` will:
+`scripts/workspace/setup-dvc.sh` will:
 
 - prompt for MinIO access key and secret key, while allowing Enter to keep the current `.env` value
 - configure local DVC remotes for `repos/mir-data` and `repos/mir-outputs`
@@ -79,14 +79,14 @@ It does **not**:
 - run `dvc push`
 - create or modify remote bucket contents
 
-`scripts/setup-dvc.sh` only updates local DVC configuration in:
+`scripts/workspace/setup-dvc.sh` only updates local DVC configuration in:
 
 - `repos/mir-data/.dvc/config`
 - `repos/mir-data/.dvc/config.local`
 - `repos/mir-outputs/.dvc/config`
 - `repos/mir-outputs/.dvc/config.local`
 
-If you skip the optional pull in `scripts/setup-dvc.sh`, pull data explicitly:
+If you skip the optional pull in `scripts/workspace/setup-dvc.sh`, pull data explicitly:
 
 ```bash
 cd repos/mir-data
@@ -113,21 +113,21 @@ dvc pull
  
 | Script | Purpose |
 |--------|---------|
-| `scripts/init-workspace.sh` | First-time setup — submodules, `.env`, `mir-core`, local DVC config |
-| `scripts/update-workspace.sh` | Refresh local workspace configuration after `.env` or credential changes |
-| `scripts/setup-dvc.sh` | Configure local DVC credentials/remotes and optionally pull `mir-data` |
-| `scripts/build-apptainer.sh` | Build the shared Apptainer runtime image |
-| `scripts/apptainer-exec.sh` | Execute a command inside the shared Apptainer image |
-| `scripts/push-apptainer-image.sh` | DVC-track and push the built Apptainer image to `mir-containers` |
-| `scripts/pull-apptainer-image.sh` | Pull the DVC-tracked Apptainer image and link it to `APPTAINER_IMAGE` |
-| `scripts/publish-run.sh` | Archive one completed live run into `mir-outputs` |
-| `scripts/smoke-test-env.sh` | Verify env activation, path model, and optional DVC pull |
-| `scripts/smoke-test-apptainer.sh` | Verify the shared Apptainer runtime image |
-| `scripts/update-repos.sh` | Pull latest on all submodules + update SHA pins |
-| `scripts/run-desktop.sh` | Launch desktop app |
-| `scripts/run-web.sh` | Launch webapp |
-| `scripts/promote-model.sh` | Promote checkpoint from outputs to data |
- 
+| `scripts/workspace/init-workspace.sh` | First-time setup — submodules, `.env`, `mir-core`, local DVC config |
+| `scripts/workspace/update-workspace.sh` | Refresh local workspace configuration after `.env` or credential changes |
+| `scripts/workspace/setup-dvc.sh` | Configure local DVC credentials/remotes and optionally pull `mir-data` |
+| `scripts/workspace/smoke-test-env.sh` | Verify env activation, path model, and optional DVC pull |
+| `scripts/workspace/update-repos.sh` | Pull latest on all submodules + update SHA pins |
+| `scripts/apptainer/build.sh` | Build the shared Apptainer runtime image |
+| `scripts/apptainer/exec.sh` | Execute a command inside the shared Apptainer image |
+| `scripts/apptainer/push-image.sh` | DVC-track and push the built Apptainer image to `mir-containers` |
+| `scripts/apptainer/pull-image.sh` | Pull the DVC-tracked Apptainer image and link it to `APPTAINER_IMAGE` |
+| `scripts/apptainer/smoke-test.sh` | Verify the shared Apptainer runtime image |
+| `scripts/runs/publish-run.sh` | Archive one completed live run into `mir-outputs` |
+| `scripts/runs/promote-model.sh` | Promote checkpoint from outputs to data |
+| `scripts/apps/run-desktop.sh` | Launch desktop app |
+| `scripts/apps/run-web.sh` | Launch webapp |
+
 ## Rules
  
 - No domain logic in this repo — thin launchers and config only
@@ -141,7 +141,7 @@ The common cluster container assets live under [containers/apptainer](/home/hash
 Build the shared image:
 
 ```bash
-./scripts/build-apptainer.sh
+./scripts/apptainer/build.sh
 ```
 
 By default this builds the DVC-managed image at:
@@ -153,13 +153,13 @@ containers/apptainer/images/mir-common.sif
 If your host requires unprivileged builds, pass through Apptainer build flags:
 
 ```bash
-APPTAINER_BUILD_OPTS="--fakeroot" ./scripts/build-apptainer.sh
+APPTAINER_BUILD_OPTS="--fakeroot" ./scripts/apptainer/build.sh
 ```
 
 Push the built image to the dedicated DVC remote:
 
 ```bash
-./scripts/push-apptainer-image.sh
+./scripts/apptainer/push-image.sh
 git add containers/apptainer/images/mir-common.sif.dvc containers/apptainer/images/.gitignore .gitignore .dvc/config
 git commit -m "Update Apptainer image"
 git push
@@ -168,13 +168,13 @@ git push
 On DAIC or DelftBlue, pull and link the image into the configured runtime path:
 
 ```bash
-./scripts/pull-apptainer-image.sh
+./scripts/apptainer/pull-image.sh
 ```
 
 Run a command inside it:
 
 ```bash
-./scripts/apptainer-exec.sh python -m mir_env.verify_installation
+./scripts/apptainer/exec.sh python -m mir_env.verify_installation
 ```
 
 ## Outputs
@@ -183,7 +183,7 @@ Cluster jobs should write live run artifacts to `MIR_RUNS_ROOT` and publish
 completed attempts with:
 
 ```bash
-./scripts/publish-run.sh <experiment_hash> <attempt_id>
+./scripts/runs/publish-run.sh <experiment_hash> <attempt_id>
 ```
 
 Archived runs land in `repos/mir-outputs/runs/<experiment_hash>/<attempt_id>/`.
@@ -195,9 +195,9 @@ with DVC and stored through the shared cache under `MIR_SHARED_ROOT`.
 Verify one bootstrap environment end-to-end with:
 
 ```bash
-./scripts/smoke-test-env.sh daic --pull-test
-./scripts/smoke-test-env.sh daic-experimental --pull-test
-./scripts/smoke-test-env.sh delftblue --pull-test
+./scripts/workspace/smoke-test-env.sh daic --pull-test
+./scripts/workspace/smoke-test-env.sh daic-experimental --pull-test
+./scripts/workspace/smoke-test-env.sh delftblue --pull-test
 ```
 
 The script activates the target bootstrap environment, verifies DVC and a few
@@ -207,5 +207,5 @@ performs a small `dvc pull` smoke test from `mir-data`.
 Verify the full shared runtime with:
 
 ```bash
-./scripts/smoke-test-apptainer.sh
+./scripts/apptainer/smoke-test.sh
 ```
