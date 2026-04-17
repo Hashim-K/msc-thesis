@@ -1,0 +1,5 @@
+[core]
+    remote = origin
+['remote "origin"']
+    url = s3://mir-containers
+    endpointurl = https://minio-api.thesis.hashimkarim.com

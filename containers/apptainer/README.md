@@ -9,8 +9,8 @@ Files:
 
 Outputs:
 
-- `mir-common.sif`
-  Default built image (ignored by Git)
+- `images/mir-common.sif`
+  Default built image. The file is ignored by Git and tracked through DVC.
 
 The image is intended to be:
 
@@ -28,3 +28,22 @@ Runtime data and output paths are still provided by bind mounts and env vars:
 - `MIR_DATA_ROOT`
 - `MIR_OUTPUTS_ROOT`
 - `MIR_CORE_PATH`
+
+Build locally:
+
+```bash
+./scripts/build-apptainer.sh
+```
+
+Push the image to the dedicated DVC remote backed by the `mir-containers`
+MinIO bucket:
+
+```bash
+./scripts/push-apptainer-image.sh
+```
+
+Pull it on a cluster checkout and link it to `APPTAINER_IMAGE`:
+
+```bash
+./scripts/pull-apptainer-image.sh
+```

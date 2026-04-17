@@ -83,6 +83,7 @@ configure_remote() {
   echo
 }
 
+configure_remote "$workspace_root" "mir-containers"
 configure_remote "$workspace_root/repos/mir-data" "mir-data"
 configure_remote "$workspace_root/repos/mir-outputs" "mir-outputs"
 

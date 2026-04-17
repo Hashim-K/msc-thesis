@@ -3,4 +3,5 @@ __pycache__/
 *.py[cod]
 *.DS_Store
 containers/apptainer/*.sif
+containers/apptainer/images/*.sif
 containers/apptainer/*.sandbox/

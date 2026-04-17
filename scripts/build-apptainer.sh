@@ -14,7 +14,8 @@ if [[ -f "$ROOT/.env" ]]; then
   set +a
 fi
 
-OUTPUT_IMAGE="${1:-${APPTAINER_IMAGE:-$ROOT/containers/apptainer/mir-common.sif}}"
+DEFAULT_IMAGE_REL="${APPTAINER_DVC_IMAGE:-containers/apptainer/images/mir-common.sif}"
+OUTPUT_IMAGE="${1:-${APPTAINER_BUILD_IMAGE:-$ROOT/$DEFAULT_IMAGE_REL}}"
 
 if ! command -v apptainer >/dev/null 2>&1; then
   echo "apptainer is not available on PATH."

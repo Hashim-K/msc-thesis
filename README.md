@@ -118,6 +118,8 @@ dvc pull
 | `scripts/setup-dvc.sh` | Configure local DVC credentials/remotes and optionally pull `mir-data` |
 | `scripts/build-apptainer.sh` | Build the shared Apptainer runtime image |
 | `scripts/apptainer-exec.sh` | Execute a command inside the shared Apptainer image |
+| `scripts/push-apptainer-image.sh` | DVC-track and push the built Apptainer image to `mir-containers` |
+| `scripts/pull-apptainer-image.sh` | Pull the DVC-tracked Apptainer image and link it to `APPTAINER_IMAGE` |
 | `scripts/publish-run.sh` | Archive one completed live run into `mir-outputs` |
 | `scripts/smoke-test-env.sh` | Verify env activation, path model, and optional DVC pull |
 | `scripts/smoke-test-apptainer.sh` | Verify the shared Apptainer runtime image |
@@ -142,10 +144,31 @@ Build the shared image:
 ./scripts/build-apptainer.sh
 ```
 
+By default this builds the DVC-managed image at:
+
+```text
+containers/apptainer/images/mir-common.sif
+```
+
 If your host requires unprivileged builds, pass through Apptainer build flags:
 
 ```bash
 APPTAINER_BUILD_OPTS="--fakeroot" ./scripts/build-apptainer.sh
+```
+
+Push the built image to the dedicated DVC remote:
+
+```bash
+./scripts/push-apptainer-image.sh
+git add containers/apptainer/images/mir-common.sif.dvc containers/apptainer/images/.gitignore .gitignore .dvc/config
+git commit -m "Update Apptainer image"
+git push
+```
+
+On DAIC or DelftBlue, pull and link the image into the configured runtime path:
+
+```bash
+./scripts/pull-apptainer-image.sh
 ```
 
 Run a command inside it:

@@ -1,0 +1,3 @@
+# Keep the orchestrator-level DVC repo focused on workspace artifacts.
+# Dataset and output repositories are independent DVC repos under repos/.
+repos/
