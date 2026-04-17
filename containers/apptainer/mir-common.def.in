@@ -33,23 +33,23 @@ From: ubuntu:22.04
 
     curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xj -C /usr/local/bin --strip-components=1 bin/micromamba
 
-    mkdir -p /opt/msc-thesis/tmp /opt/msc-thesis/pip-cache
+    mkdir -p /opt/msc-thesis/tmp /opt/msc-thesis/pip-cache /opt/micromamba-build
     export TMPDIR=/opt/msc-thesis/tmp
     export TEMP=/opt/msc-thesis/tmp
     export TMP=/opt/msc-thesis/tmp
     export PIP_CACHE_DIR=/opt/msc-thesis/pip-cache
     export PIP_NO_CACHE_DIR=1
 
-    export MAMBA_ROOT_PREFIX=/opt/micromamba
-    micromamba create -y -n MIR-apptainer -f /opt/msc-thesis/environment-apptainer.yml
+    export MAMBA_ROOT_PREFIX=/opt/micromamba-build
+    micromamba create -y -p /opt/micromamba/envs/MIR-apptainer -f /opt/msc-thesis/environment-apptainer.yml
 
     eval "$(micromamba shell hook -s bash)"
-    micromamba activate MIR-apptainer
+    micromamba activate /opt/micromamba/envs/MIR-apptainer
 
     python -m pip install -e /opt/msc-thesis/repos/mir-core
 
     micromamba clean -a -y
-    rm -rf /opt/msc-thesis/tmp /opt/msc-thesis/pip-cache
+    rm -rf /opt/msc-thesis/tmp /opt/msc-thesis/pip-cache /opt/micromamba-build
     python -m pip cache purge || true
 
 %environment
