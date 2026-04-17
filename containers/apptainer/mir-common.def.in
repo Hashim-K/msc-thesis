@@ -1,9 +1,11 @@
 Bootstrap: docker
 From: ubuntu:22.04
 
-%files
-    __ENV_FILE__ /tmp/environment-apptainer.yml
-    __MIR_CORE__ /opt/msc-thesis/repos/mir-core
+%setup
+    mkdir -p "${APPTAINER_ROOTFS}/tmp"
+    cp "__ENV_FILE__" "${APPTAINER_ROOTFS}/tmp/environment-apptainer.yml"
+    mkdir -p "${APPTAINER_ROOTFS}/opt/msc-thesis/repos"
+    cp -a "__MIR_CORE__" "${APPTAINER_ROOTFS}/opt/msc-thesis/repos/mir-core"
 
 %labels
     Author Hashim Karim
