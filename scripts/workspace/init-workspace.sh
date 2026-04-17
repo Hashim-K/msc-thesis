@@ -282,9 +282,9 @@ export MIR_RUNS_ROOT="$(get_env_value MIR_RUNS_ROOT "$ENVFILE")"
 export APPTAINER_IMAGE="$(get_env_value APPTAINER_IMAGE "$ENVFILE")"
 require_conda
 
-set -a
-source "$ENVFILE"
-set +a
+# shellcheck disable=SC1091
+source "$ROOT/scripts/lib/env.sh"
+load_workspace_env "$ROOT"
 
 mkdir -p "$MIR_SHARED_ROOT/dvc-cache" "$MIR_RUNS_ROOT" "$(dirname "$APPTAINER_IMAGE")"
 

@@ -10,10 +10,9 @@ if [[ ! -f "$ENVFILE" ]]; then
   exit 1
 fi
 
-set -a
 # shellcheck disable=SC1091
-source "$ENVFILE"
-set +a
+source "$ROOT/scripts/lib/env.sh"
+load_workspace_env "$ROOT"
 
 : "${MINIO_ENDPOINT:?MINIO_ENDPOINT missing from .env}"
 : "${AWS_ACCESS_KEY_ID:?AWS_ACCESS_KEY_ID missing from .env}"

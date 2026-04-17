@@ -139,10 +139,9 @@ fi
 require_conda_for_target "$TARGET"
 activate_env "$TARGET_ENV"
 
-set -a
 # shellcheck disable=SC1090
-source "$ENVFILE"
-set +a
+source "$ROOT/scripts/lib/env.sh"
+load_workspace_env "$ROOT"
 
 echo "==> Environment"
 echo "Target: $TARGET"

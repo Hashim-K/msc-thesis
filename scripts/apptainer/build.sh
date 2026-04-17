@@ -9,7 +9,7 @@ BUILD_OPTS="${APPTAINER_BUILD_OPTS:-}"
 
 # shellcheck disable=SC1091
 source "$ROOT/scripts/lib/env.sh"
-load_env_file "$ROOT/.env"
+load_workspace_env "$ROOT"
 
 DEFAULT_IMAGE_REL="${APPTAINER_DVC_IMAGE:-containers/apptainer/images/mir-common.sif}"
 OUTPUT_IMAGE="${1:-${APPTAINER_BUILD_IMAGE:-$ROOT/$DEFAULT_IMAGE_REL}}"

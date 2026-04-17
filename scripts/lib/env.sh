@@ -15,3 +15,9 @@ load_env_file() {
     export "$key"
   done < "$env_file"
 }
+
+load_workspace_env() {
+  local root="$1"
+  load_env_file "$root/.env"
+  load_env_file "$root/.env.local"
+}

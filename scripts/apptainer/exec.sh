@@ -26,7 +26,7 @@ fi
 
 # shellcheck disable=SC1091
 source "$ROOT/scripts/lib/env.sh"
-load_env_file "$ROOT/.env"
+load_workspace_env "$ROOT"
 
 IMAGE="${APPTAINER_IMAGE:-${IMAGE:-$ROOT/${APPTAINER_DVC_IMAGE:-containers/apptainer/images/mir-common.sif}}}"
 

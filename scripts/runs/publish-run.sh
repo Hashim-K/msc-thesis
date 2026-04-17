@@ -12,10 +12,9 @@ if [[ ! -f "$ENVFILE" ]]; then
   exit 1
 fi
 
-set -a
 # shellcheck disable=SC1090
-source "$ENVFILE"
-set +a
+source "$ROOT/scripts/lib/env.sh"
+load_workspace_env "$ROOT"
 
 : "${MIR_RUNS_ROOT:?MIR_RUNS_ROOT missing from .env}"
 : "${MIR_OUTPUTS_ROOT:?MIR_OUTPUTS_ROOT missing from .env}"

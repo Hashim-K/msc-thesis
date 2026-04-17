@@ -43,9 +43,9 @@ echo "==> MinIO / DVC credentials..."
 prompt_env_value "AWS_ACCESS_KEY_ID" "MinIO access key"
 prompt_env_value "AWS_SECRET_ACCESS_KEY" "MinIO secret key"
 
-set -a
-source "$env_file"
-set +a
+# shellcheck disable=SC1091
+source "$workspace_root/scripts/lib/env.sh"
+load_workspace_env "$workspace_root"
 
 : "${MINIO_ENDPOINT:?MINIO_ENDPOINT missing from .env}"
 : "${MIR_SHARED_ROOT:?MIR_SHARED_ROOT missing from .env}"

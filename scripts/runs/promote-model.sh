@@ -6,7 +6,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 # shellcheck disable=SC1091
 source "$ROOT/scripts/lib/env.sh"
-load_env_file "$ROOT/.env"
+load_workspace_env "$ROOT"
 
 if [[ $# -eq 2 ]]; then
   RUN_REF="${1:?Usage: promote-model.sh <experiment_hash>/<attempt_id> <model-id>}"
