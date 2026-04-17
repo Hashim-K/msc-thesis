@@ -5,9 +5,31 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 USE_NV="yes"
 VERBOSE="no"
+PASS_PREFIX="[PASS]"
+WARN_PREFIX="[WARN]"
+FAIL_PREFIX="[FAIL]"
+
+if [[ -t 1 && -z "${NO_COLOR:-}" ]] || [[ -n "${FORCE_COLOR:-}" ]]; then
+  PASS_PREFIX=$'\033[32m[PASS]\033[0m'
+  WARN_PREFIX=$'\033[33m[WARN]\033[0m'
+  FAIL_PREFIX=$'\033[31m[FAIL]\033[0m'
+fi
+
+export MIR_SMOKE_PASS_PREFIX="$PASS_PREFIX"
+export MIR_SMOKE_WARN_PREFIX="$WARN_PREFIX"
+export MIR_SMOKE_FAIL_PREFIX="$FAIL_PREFIX"
 
 pass() {
-  printf 'PASS: %s\n' "$1"
+  printf '%s %s\n' "$PASS_PREFIX" "$1"
+}
+
+warn() {
+  printf '%s %s\n' "$WARN_PREFIX" "$1"
+}
+
+fail() {
+  printf '%s %s\n' "$FAIL_PREFIX" "$1" >&2
+  exit 1
 }
 
 while [[ $# -gt 0 ]]; do
@@ -19,23 +41,19 @@ while [[ $# -gt 0 ]]; do
       VERBOSE="yes"
       ;;
     *)
-      echo "Usage: $0 [--no-nv] [--verbose]"
-      exit 1
+      fail "Usage: $0 [--no-nv] [--verbose]"
       ;;
   esac
   shift
 done
 
 if [[ ! -f "$ROOT/.env" ]]; then
-  echo "Missing $ROOT/.env"
-  echo "Run ./scripts/workspace/init-workspace.sh first."
-  exit 1
+  fail "Missing $ROOT/.env. Run ./scripts/workspace/init-workspace.sh first."
 fi
 pass ".env exists"
 
 if ! command -v apptainer >/dev/null 2>&1; then
-  echo "apptainer is not available on PATH."
-  exit 1
+  fail "apptainer is not available on PATH."
 fi
 pass "apptainer on PATH"
 
@@ -46,9 +64,7 @@ load_workspace_env "$ROOT"
 IMAGE="${APPTAINER_IMAGE:-$ROOT/${APPTAINER_DVC_IMAGE:-containers/apptainer/images/mir-common.sif}}"
 
 if [[ ! -f "$IMAGE" ]]; then
-  echo "Missing Apptainer image: $IMAGE"
-  echo "Build or copy the shared image first."
-  exit 1
+  fail "Missing Apptainer image: $IMAGE. Build or copy the shared image first."
 fi
 pass "Apptainer image exists"
 
@@ -65,7 +81,7 @@ if [[ "$VERBOSE" == "yes" ]]; then
   if command -v nvidia-smi >/dev/null 2>&1; then
     nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader || true
   else
-    echo "nvidia-smi=missing"
+    warn "nvidia-smi missing on host"
   fi
 fi
 
@@ -88,11 +104,18 @@ import platform
 import shutil
 import subprocess
 
+pass_prefix = os.environ.get("MIR_SMOKE_PASS_PREFIX", "[PASS]")
+warn_prefix = os.environ.get("MIR_SMOKE_WARN_PREFIX", "[WARN]")
+fail_prefix = os.environ.get("MIR_SMOKE_FAIL_PREFIX", "[FAIL]")
 modules = ["torch", "torchaudio", "librosa", "mir_eval", "mirdata", "madmom", "mir_core"]
 for name in modules:
-    module = importlib.import_module(name)
+    try:
+        module = importlib.import_module(name)
+    except Exception as exc:
+        print(f"{fail_prefix} import {name}: {exc}")
+        raise
     version = getattr(module, "__version__", "unknown")
-    print(f"PASS: import {name} ({version})")
+    print(f"{pass_prefix} import {name} ({version})")
 
 import torch
 print(f"container_python={platform.python_version()}")
@@ -108,7 +131,7 @@ if os.environ.get("MIR_SMOKE_VERBOSE") == "yes":
     if shutil.which("nvidia-smi"):
         subprocess.run(["nvidia-smi"], check=False)
     else:
-        print("container_nvidia_smi=missing")
+        print(f"{warn_prefix} nvidia-smi missing in container")
 PY
 else
   export MIR_SMOKE_VERBOSE="$VERBOSE"
@@ -117,11 +140,17 @@ import importlib
 import os
 import platform
 
+pass_prefix = os.environ.get("MIR_SMOKE_PASS_PREFIX", "[PASS]")
+fail_prefix = os.environ.get("MIR_SMOKE_FAIL_PREFIX", "[FAIL]")
 modules = ["torch", "torchaudio", "librosa", "mir_eval", "mirdata", "madmom", "mir_core"]
 for name in modules:
-    module = importlib.import_module(name)
+    try:
+        module = importlib.import_module(name)
+    except Exception as exc:
+        print(f"{fail_prefix} import {name}: {exc}")
+        raise
     version = getattr(module, "__version__", "unknown")
-    print(f"PASS: import {name} ({version})")
+    print(f"{pass_prefix} import {name} ({version})")
 
 import torch
 print(f"container_python={platform.python_version()}")
