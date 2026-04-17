@@ -43,14 +43,11 @@ From: ubuntu:22.04
     export MAMBA_ROOT_PREFIX=/opt/micromamba-build
     micromamba create -y -p /opt/micromamba/envs/MIR-apptainer -f /opt/msc-thesis/environment-apptainer.yml
 
-    eval "$(micromamba shell hook -s bash)"
-    micromamba activate /opt/micromamba/envs/MIR-apptainer
-
-    python -m pip install -e /opt/msc-thesis/repos/mir-core
+    /opt/micromamba/envs/MIR-apptainer/bin/python -m pip install -e /opt/msc-thesis/repos/mir-core
 
     micromamba clean -a -y
     rm -rf /opt/msc-thesis/tmp /opt/msc-thesis/pip-cache /opt/micromamba-build
-    python -m pip cache purge || true
+    /opt/micromamba/envs/MIR-apptainer/bin/python -m pip cache purge || true
 
 %environment
     export MAMBA_ROOT_PREFIX=/opt/micromamba
