@@ -124,12 +124,12 @@ prompt_target_environment() {
     daic)
       target_kind="daic"
       target_env_name="MIR-hpc"
-      target_env_file="environment-hpc-bootstrap.yml"
+      target_env_file="environment-hpc.yml"
       ;;
     delftblue)
       target_kind="delftblue"
       target_env_name="MIR-hpc"
-      target_env_file="environment-hpc-bootstrap.yml"
+      target_env_file="environment-hpc.yml"
       ;;
     *)
       echo "Unknown target: $input_value"
