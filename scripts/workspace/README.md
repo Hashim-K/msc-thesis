@@ -18,6 +18,10 @@ Setup and maintenance commands for the checked-out `msc-thesis` workspace.
 ./scripts/workspace/init.sh
 ```
 
+Tracked platform env files currently exist for `legion` and `daic`.
+`delftblue` is still a placeholder target until `.env.delftblue` is added and
+the Apptainer workflow is verified there.
+
 ## Refresh After Config Changes
 
 ```bash

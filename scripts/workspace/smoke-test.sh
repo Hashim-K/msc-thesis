@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# smoke-test.sh <legion|daic|daic-experimental|delftblue> [--pull-test]
+# smoke-test.sh <legion|daic|delftblue> [--pull-test]
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -7,7 +7,7 @@ ENVFILE="$ROOT/.env"
 PULL_TEST="no"
 
 usage() {
-  echo "Usage: $0 <legion|daic|daic-experimental|delftblue> [--pull-test]"
+  echo "Usage: $0 <legion|daic|delftblue> [--pull-test]"
   exit 1
 }
 

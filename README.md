@@ -13,7 +13,7 @@ cd msc-thesis
 ```
 
 The script will ask whether you are setting up the `legion`, `daic`, or
-`delftblue` platform and then create or update the matching conda
+`delftblue` platform and then create or update the matching host-tools conda
 environment for you.
 
 On DAIC, the script will try to load the Miniconda module automatically. If that fails, run:
@@ -24,16 +24,12 @@ module load miniconda
 ./scripts/workspace/init.sh
 ```
 
-On DelftBlue, install Miniconda or Miniforge in `$HOME` first. The script will
-try to find one of these standard installs automatically:
+For `daic`, `init.sh` creates a minimal `MIR-hpc` bootstrap environment for
+DVC and lightweight helper scripts. The full training/runtime stack is
+provided by the shared Apptainer image.
 
-- `$HOME/miniconda3`
-- `$HOME/miniforge3`
-- `$HOME/mambaforge`
-
-For `daic` and `delftblue`, `init.sh` now creates a minimal
-`MIR-hpc` bootstrap environment for DVC and lightweight helper scripts. The
-full training/runtime stack is provided by the shared Apptainer image.
+DelftBlue is intentionally not configured yet. Add a tracked `.env.delftblue`
+and verify the Apptainer workflow there before treating it as supported.
 
 `init.sh` will:
 
@@ -139,7 +135,7 @@ scripts.
 
 ## Apptainer
 
-The common cluster container assets live under [containers/apptainer](/home/hashim/msc-thesis/containers/apptainer).
+The common cluster container assets live under `containers/apptainer/`.
 
 Build the shared image:
 
@@ -168,17 +164,35 @@ git commit -m "Update Apptainer image"
 git push
 ```
 
-On DAIC or DelftBlue, pull and link the image into the configured runtime path:
+On DAIC, pull and link the image into the configured runtime path:
 
 ```bash
 ./scripts/apptainer/pull-image.sh
 ```
+
+The DAIC pull path is verified. The script pulls the DVC-tracked image from the
+`mir-containers` remote into the shared DVC cache and links
+`$APPTAINER_IMAGE` directly to the resolved cache object.
 
 Run a command inside it:
 
 ```bash
 ./scripts/apptainer/exec.sh python -m mir_env.verify_installation
 ```
+
+## Verified DAIC Status
+
+As of 2026-04-20, the DAIC Apptainer runtime has been verified on a GPU node:
+
+- host: `gpu10.hpc.tudelft.nl`
+- GPU: NVIDIA A40
+- Apptainer: `1.3.2-1.el7`
+- container Python: `3.10.14`
+- PyTorch: `2.5.1`, CUDA build `12.4`
+- result: `cuda_available=True`, `cuda_device_count=1`
+
+The next tracked work item is the first DAIC Apptainer smoke training
+experiment in `mir-train-hpc`.
 
 ## Outputs
 
@@ -198,9 +212,8 @@ with DVC and stored through the shared cache under `MIR_SHARED_ROOT`.
 Verify one bootstrap environment end-to-end with:
 
 ```bash
+./scripts/workspace/smoke-test.sh legion --pull-test
 ./scripts/workspace/smoke-test.sh daic --pull-test
-./scripts/workspace/smoke-test.sh daic-experimental --pull-test
-./scripts/workspace/smoke-test.sh delftblue --pull-test
 ```
 
 The script activates the target bootstrap environment, verifies DVC and a few
@@ -211,4 +224,11 @@ Verify the full shared runtime with:
 
 ```bash
 ./scripts/apptainer/smoke-test.sh
+```
+
+On a DAIC GPU allocation, verify CUDA visibility with:
+
+```bash
+sinteractive --gres=gpu:1 --mem=8G --time=01:00:00
+./scripts/apptainer/smoke-test.sh --verbose
 ```
