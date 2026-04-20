@@ -34,6 +34,16 @@ printf '    IMAGE_PATH=%q\n' "$IMAGE_PATH"
 printf '    DEPLOY_IMAGE=%q\n' "$DEPLOY_IMAGE"
 
 if ! command -v dvc >/dev/null 2>&1; then
+  case "${MIR_ENV_PROFILE:-}" in
+    daic)
+      echo "==> dvc not found; loading DAIC host-tools environment..."
+      # shellcheck disable=SC1091
+      source "$ROOT/scripts/daic/env.sh"
+      ;;
+  esac
+fi
+
+if ! command -v dvc >/dev/null 2>&1; then
   echo "dvc is not available on PATH."
   echo "Activate the host-tools environment first:"
   echo "  conda activate MIR-hpc"
