@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# smoke-test.sh <desktop|daic|daic-experimental|delftblue> [--pull-test]
+# smoke-test.sh <legion|daic|daic-experimental|delftblue> [--pull-test]
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -7,7 +7,7 @@ ENVFILE="$ROOT/.env"
 PULL_TEST="no"
 
 usage() {
-  echo "Usage: $0 <desktop|daic|daic-experimental|delftblue> [--pull-test]"
+  echo "Usage: $0 <legion|daic|daic-experimental|delftblue> [--pull-test]"
   exit 1
 }
 
@@ -81,7 +81,7 @@ require_conda_for_target() {
         exit 1
       }
       ;;
-    desktop)
+    desktop|legion)
       echo "conda is not available on PATH."
       exit 1
       ;;
@@ -116,14 +116,17 @@ while [[ $# -gt 0 ]]; do
 done
 
 case "$TARGET" in
-  desktop)
+  desktop|legion)
     TARGET_ENV="MIR"
+    TARGET_PROFILE="legion"
     ;;
   daic|daic-experimental)
     TARGET_ENV="MIR-hpc"
+    TARGET_PROFILE="daic"
     ;;
   delftblue)
     TARGET_ENV="MIR-hpc"
+    TARGET_PROFILE="delftblue"
     ;;
   *)
     usage
@@ -141,6 +144,7 @@ activate_env "$TARGET_ENV"
 
 # shellcheck disable=SC1090
 source "$ROOT/scripts/lib/env.sh"
+export MIR_ENV_PROFILE="$TARGET_PROFILE"
 load_workspace_env "$ROOT"
 
 echo "==> Environment"

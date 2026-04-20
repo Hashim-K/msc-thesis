@@ -12,8 +12,8 @@ cd msc-thesis
 ./scripts/workspace/init.sh
 ```
 
-The script will ask whether you are setting up a `desktop`, `daic`, or
-`delftblue` environment and then create or update the matching conda
+The script will ask whether you are setting up the `legion`, `daic`, or
+`delftblue` platform and then create or update the matching conda
 environment for you.
 
 On DAIC, the script will try to load the Miniconda module automatically. If that fails, run:
@@ -38,12 +38,11 @@ full training/runtime stack is provided by the shared Apptainer image.
 `init.sh` will:
 
 - initialize submodules
-- create `.env` from `.env.example` if needed
-- auto-detect workspace repo paths and prompt for overrides when `.env` is first created or still uses placeholders
-- ask whether to set up `desktop` (`MIR`), `daic` (`MIR-hpc`), or `delftblue` (`MIR-hpc`)
+- use the tracked `.env` plus the selected platform file such as `.env.legion` or `.env.daic`
+- ask whether to set up `legion` (`MIR`), `daic` (`MIR-hpc`), or `delftblue` (`MIR-hpc`)
 - create or update the matching conda environment from `repos/mir-environment`
 - activate that environment inside the script
-- install `repos/mir-core` in editable mode only for the desktop env
+- install `repos/mir-core` in editable mode only for the `legion` env
 - run `./scripts/workspace/dvc.sh`
 
 After the script finishes, activate the environment in your shell:
@@ -57,7 +56,7 @@ conda activate MIR-hpc
 `update.sh` will:
 
 - require Python 3.10+ in the active environment
-- refresh `dvc[s3]` in the active Python environment for desktop envs
+- refresh `dvc[s3]` in the active Python environment for `legion` envs
 - refresh the editable `repos/mir-core` install
 - rerun `./scripts/workspace/dvc.sh`
 

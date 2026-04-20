@@ -6,6 +6,6 @@ Shared shell helpers used by scripts in sibling folders.
 
 | File | Purpose |
 |------|---------|
-| `env.sh` | Load `.env` and `.env.local` without shell-sourcing arbitrary values |
+| `env.sh` | Load `.env` plus `.env.<profile>` without shell-sourcing arbitrary values |
 
 Do not call files in this folder directly.

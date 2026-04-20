@@ -4,9 +4,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 ENVFILE="$ROOT/.env"
-ENVEXAMPLE="$ROOT/.env.example"
 ENVROOT="$ROOT/repos/mir-environment"
-created_env=false
 target_kind=""
 target_env_name=""
 target_env_file=""
@@ -93,11 +91,6 @@ get_env_value() {
   awk -F= -v key="$key" '$1 == key {sub(/^[^=]*=/, "", $0); print $0; exit}' "$file"
 }
 
-is_placeholder_value() {
-  local value="$1"
-  [[ -z "$value" || "$value" == /path/to/* ]]
-}
-
 set_env_value() {
   local key="$1"
   local value="$2"
@@ -112,12 +105,12 @@ set_env_value() {
 prompt_target_environment() {
   local input_value
 
-  read -r -p "Target environment [desktop/daic/delftblue] (default: desktop): " input_value
+  read -r -p "Target platform [legion/daic/delftblue] (default: legion): " input_value
   input_value="${input_value,,}"
 
   case "$input_value" in
-    ""|desktop)
-      target_kind="desktop"
+    ""|desktop|legion)
+      target_kind="legion"
       target_env_name="MIR"
       target_env_file="environment.yml"
       ;;
@@ -133,7 +126,7 @@ prompt_target_environment() {
       ;;
     *)
       echo "Unknown target: $input_value"
-      echo "Use 'desktop', 'daic', or 'delftblue'."
+      echo "Use 'legion', 'daic', or 'delftblue'."
       exit 1
       ;;
   esac
@@ -207,26 +200,15 @@ activate_target_environment() {
   fi
 }
 
-prompt_path_value() {
+prompt_env_value() {
   local key="$1"
   local label="$2"
-  local default_value="$3"
-  local current_value
-  local prompt_value
-  local input_value
+  local current_value input_value
 
   current_value="$(get_env_value "$key" "$ENVFILE")"
-  if ! is_placeholder_value "$current_value"; then
-    prompt_value="$current_value"
-  else
-    prompt_value="$default_value"
-  fi
-
-  read -r -p "$label [$prompt_value]: " input_value
+  read -r -p "$label [$current_value]: " input_value
   if [[ -n "$input_value" ]]; then
     set_env_value "$key" "$input_value" "$ENVFILE"
-  else
-    set_env_value "$key" "$prompt_value" "$ENVFILE"
   fi
 }
 
@@ -238,48 +220,26 @@ echo "==> Initialising submodules..."
 
 echo "==> Setting up .env..."
 if [[ ! -f "$ENVFILE" ]]; then
-  if [[ ! -f "$ENVEXAMPLE" ]]; then
-    echo "Missing $ENVEXAMPLE"
-    exit 1
-  fi
-  cp "$ENVEXAMPLE" "$ENVFILE"
-  created_env=true
-  echo "    .env created from .env.example"
-  echo "    Fill in AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY before using DVC"
+  echo "Missing tracked env file: $ENVFILE"
+  echo "Restore it with: git checkout -- .env"
+  exit 1
 else
-  echo "    .env already exists, skipping"
+  echo "    .env exists"
 fi
 
 prompt_target_environment
+platform_env_file="$ROOT/.env.$target_kind"
+if [[ ! -f "$platform_env_file" ]]; then
+  echo "Missing platform env file: $platform_env_file"
+  exit 1
+fi
+
+set_env_value "MIR_ENV_PROFILE" "$target_kind" "$ENVFILE"
+echo "==> MinIO / DVC credentials..."
+prompt_env_value "AWS_ACCESS_KEY_ID" "MinIO access key"
+prompt_env_value "AWS_SECRET_ACCESS_KEY" "MinIO secret key"
 target_env_prefix="$HOME/.conda/envs/$target_env_name"
 
-data_default="$ROOT/repos/mir-data"
-outputs_default="$ROOT/repos/mir-outputs"
-core_default="$ROOT/repos/mir-core"
-if [[ "$target_kind" == "daic" || "$target_kind" == "delftblue" ]]; then
-  shared_default="/tudelft.net/staff-umbrella/mirworkspace"
-else
-  shared_default="$ROOT/shared"
-fi
-runs_default="$shared_default/runs"
-apptainer_default="$shared_default/containers/mir-common.sif"
-
-if $created_env || is_placeholder_value "$(get_env_value MIR_DATA_ROOT "$ENVFILE")" || is_placeholder_value "$(get_env_value MIR_OUTPUTS_ROOT "$ENVFILE")" || is_placeholder_value "$(get_env_value MIR_CORE_PATH "$ENVFILE")" || is_placeholder_value "$(get_env_value MIR_SHARED_ROOT "$ENVFILE")" || is_placeholder_value "$(get_env_value MIR_RUNS_ROOT "$ENVFILE")" || is_placeholder_value "$(get_env_value APPTAINER_IMAGE "$ENVFILE")"; then
-  echo "==> Workspace paths..."
-  prompt_path_value "MIR_DATA_ROOT" "Path to mir-data" "$data_default"
-  prompt_path_value "MIR_OUTPUTS_ROOT" "Path to mir-outputs" "$outputs_default"
-  prompt_path_value "MIR_CORE_PATH" "Path to mir-core" "$core_default"
-  prompt_path_value "MIR_SHARED_ROOT" "Path to shared project storage" "$shared_default"
-  prompt_path_value "MIR_RUNS_ROOT" "Path to live run staging" "$runs_default"
-  prompt_path_value "APPTAINER_IMAGE" "Path to shared Apptainer image" "$apptainer_default"
-fi
-
-export MIR_DATA_ROOT="$(get_env_value MIR_DATA_ROOT "$ENVFILE")"
-export MIR_OUTPUTS_ROOT="$(get_env_value MIR_OUTPUTS_ROOT "$ENVFILE")"
-export MIR_CORE_PATH="$(get_env_value MIR_CORE_PATH "$ENVFILE")"
-export MIR_SHARED_ROOT="$(get_env_value MIR_SHARED_ROOT "$ENVFILE")"
-export MIR_RUNS_ROOT="$(get_env_value MIR_RUNS_ROOT "$ENVFILE")"
-export APPTAINER_IMAGE="$(get_env_value APPTAINER_IMAGE "$ENVFILE")"
 require_conda
 
 # shellcheck disable=SC1091
@@ -292,7 +252,7 @@ create_or_update_target_environment
 activate_target_environment
 
 echo "==> Installing mir-core (editable) into $target_env_name..."
-if [[ "$target_kind" == "desktop" ]]; then
+if [[ "$target_kind" == "legion" ]]; then
   python -m pip install -e "$ROOT/repos/mir-core"
 else
   echo "==> Skipping editable mir-core install for $target_kind"

@@ -26,12 +26,20 @@ SHARED_CACHE_DIR="$MIR_SHARED_ROOT/dvc-cache"
 DEPLOY_IMAGE_DIR="$(dirname "$DEPLOY_IMAGE")"
 
 echo "==> Apptainer image pull paths"
+printf '    env_files=%q\n' "${MIR_ENV_LOADED_FILES:-}"
+printf '    MIR_ENV_PROFILE=%q\n' "${MIR_ENV_PROFILE:-}"
 printf '    MIR_SHARED_ROOT=%q\n' "$MIR_SHARED_ROOT"
 printf '    SHARED_CACHE_DIR=%q\n' "$SHARED_CACHE_DIR"
 printf '    IMAGE_PATH=%q\n' "$IMAGE_PATH"
 printf '    DEPLOY_IMAGE=%q\n' "$DEPLOY_IMAGE"
-if [[ -f "$ROOT/.env.local" ]]; then
-  echo "    Loaded overrides: $ROOT/.env.local"
+
+if ! command -v dvc >/dev/null 2>&1; then
+  echo "dvc is not available on PATH."
+  echo "Activate the host-tools environment first:"
+  echo "  conda activate MIR-hpc"
+  echo "On DAIC, if conda is not loaded yet:"
+  echo "  source ./scripts/daic/env.sh"
+  exit 1
 fi
 
 ensure_dir() {
