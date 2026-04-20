@@ -23,8 +23,35 @@ IMAGE_REL="${APPTAINER_DVC_IMAGE:-containers/apptainer/images/mir-common.sif}"
 IMAGE_PATH="$ROOT/$IMAGE_REL"
 DEPLOY_IMAGE="${APPTAINER_IMAGE:-$IMAGE_PATH}"
 SHARED_CACHE_DIR="$MIR_SHARED_ROOT/dvc-cache"
+DEPLOY_IMAGE_DIR="$(dirname "$DEPLOY_IMAGE")"
 
-mkdir -p "$SHARED_CACHE_DIR" "$(dirname "$DEPLOY_IMAGE")"
+echo "==> Apptainer image pull paths"
+printf '    MIR_SHARED_ROOT=%q\n' "$MIR_SHARED_ROOT"
+printf '    SHARED_CACHE_DIR=%q\n' "$SHARED_CACHE_DIR"
+printf '    IMAGE_PATH=%q\n' "$IMAGE_PATH"
+printf '    DEPLOY_IMAGE=%q\n' "$DEPLOY_IMAGE"
+if [[ -f "$ROOT/.env.local" ]]; then
+  echo "    Loaded overrides: $ROOT/.env.local"
+fi
+
+ensure_dir() {
+  local path="$1"
+  local label="$2"
+
+  if [[ -d "$path" ]]; then
+    return
+  fi
+
+  if ! mkdir -p "$path"; then
+    echo "Failed to create $label: $path"
+    echo "Parent directory:"
+    ls -ld "$(dirname "$path")" 2>/dev/null || true
+    exit 1
+  fi
+}
+
+ensure_dir "$SHARED_CACHE_DIR" "shared DVC cache"
+ensure_dir "$DEPLOY_IMAGE_DIR" "Apptainer image directory"
 
 (
   cd "$ROOT"
