@@ -17,10 +17,14 @@ load_workspace_env "$ROOT"
 : "${MINIO_ENDPOINT:?MINIO_ENDPOINT missing from .env}"
 : "${AWS_ACCESS_KEY_ID:?AWS_ACCESS_KEY_ID missing from .env}"
 : "${AWS_SECRET_ACCESS_KEY:?AWS_SECRET_ACCESS_KEY missing from .env}"
+: "${MIR_SHARED_ROOT:?MIR_SHARED_ROOT missing from .env}"
 
 IMAGE_REL="${APPTAINER_DVC_IMAGE:-containers/apptainer/images/mir-common.sif}"
 IMAGE_PATH="$ROOT/$IMAGE_REL"
 DEPLOY_IMAGE="${APPTAINER_IMAGE:-$IMAGE_PATH}"
+SHARED_CACHE_DIR="$MIR_SHARED_ROOT/dvc-cache"
+
+mkdir -p "$SHARED_CACHE_DIR" "$(dirname "$DEPLOY_IMAGE")"
 
 (
   cd "$ROOT"
@@ -28,11 +32,12 @@ DEPLOY_IMAGE="${APPTAINER_IMAGE:-$IMAGE_PATH}"
   dvc remote modify origin endpointurl "$MINIO_ENDPOINT"
   dvc remote modify --local origin access_key_id "$AWS_ACCESS_KEY_ID"
   dvc remote modify --local origin secret_access_key "$AWS_SECRET_ACCESS_KEY"
+  dvc config --local cache.dir "$SHARED_CACHE_DIR"
+  dvc config --local cache.type symlink
   dvc pull "$IMAGE_REL.dvc"
 )
 
 if [[ "$DEPLOY_IMAGE" != "$IMAGE_PATH" ]]; then
-  mkdir -p "$(dirname "$DEPLOY_IMAGE")"
   ln -sfn "$IMAGE_PATH" "$DEPLOY_IMAGE"
   echo "Linked $DEPLOY_IMAGE -> $IMAGE_PATH"
 fi

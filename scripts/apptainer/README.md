@@ -29,4 +29,9 @@ The image is DVC-tracked from the `msc-thesis` repo and pushed to the
 ./scripts/apptainer/smoke-test.sh
 ```
 
+Use `pull-image.sh` instead of running `dvc pull` manually for the image. The
+script configures the parent workspace DVC cache under
+`$MIR_SHARED_ROOT/dvc-cache` with symlink checkout before pulling, which avoids
+putting the multi-GB `.sif` file in home quota.
+
 Use `--no-nv` when testing on a machine without NVIDIA GPU support.
