@@ -24,6 +24,8 @@ IMAGE_PATH="$ROOT/$IMAGE_REL"
 DEPLOY_IMAGE="${APPTAINER_IMAGE:-$IMAGE_PATH}"
 SHARED_CACHE_DIR="$MIR_SHARED_ROOT/dvc-cache"
 DEPLOY_IMAGE_DIR="$(dirname "$DEPLOY_IMAGE")"
+DVC_FILE="$ROOT/$IMAGE_REL.dvc"
+EXPECTED_SIZE="$(awk '/^[[:space:]]+size:/ { print $2; exit }' "$DVC_FILE")"
 
 echo "==> Apptainer image pull paths"
 printf '    env_files=%q\n' "${MIR_ENV_LOADED_FILES:-}"
@@ -32,6 +34,7 @@ printf '    MIR_SHARED_ROOT=%q\n' "$MIR_SHARED_ROOT"
 printf '    SHARED_CACHE_DIR=%q\n' "$SHARED_CACHE_DIR"
 printf '    IMAGE_PATH=%q\n' "$IMAGE_PATH"
 printf '    DEPLOY_IMAGE=%q\n' "$DEPLOY_IMAGE"
+printf '    EXPECTED_SIZE=%q\n' "$EXPECTED_SIZE"
 
 if ! command -v dvc >/dev/null 2>&1; then
   case "${MIR_ENV_PROFILE:-}" in
@@ -71,6 +74,19 @@ ensure_dir() {
 ensure_dir "$SHARED_CACHE_DIR" "shared DVC cache"
 ensure_dir "$DEPLOY_IMAGE_DIR" "Apptainer image directory"
 
+if [[ -e "$IMAGE_PATH" ]]; then
+  resolved_image="$(readlink -f "$IMAGE_PATH" || true)"
+  if [[ -n "$resolved_image" && -f "$resolved_image" ]]; then
+    actual_size="$(wc -c < "$resolved_image")"
+    if [[ "$actual_size" != "$EXPECTED_SIZE" ]]; then
+      echo "Removing corrupt Apptainer cache object:"
+      echo "  path: $resolved_image"
+      echo "  size: $actual_size, expected: $EXPECTED_SIZE"
+      rm -f "$IMAGE_PATH" "$resolved_image"
+    fi
+  fi
+fi
+
 (
   cd "$ROOT"
   dvc remote add -f -d origin s3://mir-containers
@@ -82,9 +98,23 @@ ensure_dir "$DEPLOY_IMAGE_DIR" "Apptainer image directory"
   dvc pull "$IMAGE_REL.dvc"
 )
 
+resolved_image="$(readlink -f "$IMAGE_PATH" || true)"
+if [[ -z "$resolved_image" || ! -f "$resolved_image" ]]; then
+  echo "Apptainer image was not materialized: $IMAGE_PATH"
+  exit 1
+fi
+
+actual_size="$(wc -c < "$resolved_image")"
+if [[ "$actual_size" != "$EXPECTED_SIZE" ]]; then
+  echo "Apptainer image size mismatch after pull:"
+  echo "  path: $resolved_image"
+  echo "  size: $actual_size, expected: $EXPECTED_SIZE"
+  exit 1
+fi
+
 if [[ "$DEPLOY_IMAGE" != "$IMAGE_PATH" ]]; then
-  ln -sfn "$IMAGE_PATH" "$DEPLOY_IMAGE"
-  echo "Linked $DEPLOY_IMAGE -> $IMAGE_PATH"
+  ln -sfn "$resolved_image" "$DEPLOY_IMAGE"
+  echo "Linked $DEPLOY_IMAGE -> $resolved_image"
 fi
 
 echo "Apptainer image ready: $DEPLOY_IMAGE"
