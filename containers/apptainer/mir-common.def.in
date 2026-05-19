@@ -25,7 +25,6 @@ From: ubuntu:22.04
         bzip2 \
         ca-certificates \
         curl \
-        ffmpeg \
         git \
         libsndfile1 \
         build-essential
