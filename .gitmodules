@@ -1,9 +1,11 @@
 [submodule "repos/mir-core"]
 	path = repos/mir-core
 	url = git@github.com:Hashim-K/mir-core.git
+	branch = main
 [submodule "repos/mir-train-hpc"]
 	path = repos/mir-train-hpc
 	url = git@github.com:Hashim-K/mir-train-hpc.git
+	branch = main
 [submodule "repos/mir-desktop-app"]
 	path = repos/mir-desktop-app
 	url = git@github.com:Hashim-K/mir-desktop-app.git
