@@ -22,8 +22,9 @@ pull_repo() {
     (cd "$path" && git checkout main) || { echo "    failed to checkout main"; return 1; }
   fi
 
-  if (cd "$path" && git pull --ff-only origin main 2>&1); then
+  if (cd "$path" && git pull --ff-only origin main 2>&1 >/dev/null); then
     echo "    ok"
+    echo "    latest commit: $(cd "$path" && git log -1 --format='%h - %s')"
   else
     echo "    failed"
     return 1
