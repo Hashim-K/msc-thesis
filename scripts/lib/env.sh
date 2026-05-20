@@ -24,6 +24,7 @@ load_workspace_env() {
   requested_profile="${MIR_ENV_PROFILE:-}"
   MIR_ENV_LOADED_FILES=""
   load_env_file "$root/.env"
+  load_env_file "$root/.env.local"
 
   profile="${requested_profile:-${MIR_ENV_PROFILE:-}}"
   if [[ -z "$profile" && -f "$root/.env.daic" && -d /opt/insy/modulefiles ]]; then
@@ -34,8 +35,6 @@ load_workspace_env() {
     export MIR_ENV_PROFILE="$profile"
     load_env_file "$root/.env.$profile"
   fi
-
-  load_env_file "$root/.env.local"
 
   export MIR_ENV_LOADED_FILES
 }
