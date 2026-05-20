@@ -35,5 +35,7 @@ load_workspace_env() {
     load_env_file "$root/.env.$profile"
   fi
 
+  load_env_file "$root/.env.local"
+
   export MIR_ENV_LOADED_FILES
 }
