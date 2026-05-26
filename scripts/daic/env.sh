@@ -19,24 +19,56 @@ if ! is_sourced; then
   echo
 fi
 
-if command -v module >/dev/null 2>&1; then
-  module use /opt/insy/modulefiles
-  module load miniconda
-elif command -v modulecmd >/dev/null 2>&1; then
-  eval "$(modulecmd bash use /opt/insy/modulefiles)"
-  eval "$(modulecmd bash load miniconda)"
-elif [[ -f /etc/profile.d/modules.sh ]]; then
-  # shellcheck disable=SC1091
-  source /etc/profile.d/modules.sh
-  module use /opt/insy/modulefiles
-  module load miniconda
-elif [[ -f /usr/share/Modules/init/bash ]]; then
-  # shellcheck disable=SC1091
-  source /usr/share/Modules/init/bash
-  module use /opt/insy/modulefiles
-  module load miniconda
-else
-  fail "Environment modules are not available; cannot load DAIC Miniconda."
+load_daic_miniconda() {
+  local init_file
+
+  if command -v conda >/dev/null 2>&1; then
+    return 0
+  fi
+
+  if ! command -v module >/dev/null 2>&1 && ! command -v modulecmd >/dev/null 2>&1; then
+    for init_file in \
+      /usr/share/Modules/init/bash \
+      /etc/profile.d/modules.sh \
+      /usr/share/lmod/lmod/init/bash \
+      /etc/profile \
+      /etc/bashrc
+    do
+      if [[ -f "$init_file" ]]; then
+        # shellcheck disable=SC1090
+        source "$init_file" || true
+      fi
+      command -v module >/dev/null 2>&1 || command -v modulecmd >/dev/null 2>&1
+      if [[ $? -eq 0 ]]; then
+        break
+      fi
+    done
+  fi
+
+  if command -v module >/dev/null 2>&1; then
+    module use /opt/insy/modulefiles
+    module load miniconda
+  elif command -v modulecmd >/dev/null 2>&1; then
+    eval "$(modulecmd bash use /opt/insy/modulefiles)"
+    eval "$(modulecmd bash load miniconda)"
+  fi
+
+  command -v conda >/dev/null 2>&1
+}
+
+if ! load_daic_miniconda; then
+  echo "Environment modules are not available; cannot load DAIC Miniconda." >&2
+  echo "Tried module init files:" >&2
+  echo "  /usr/share/Modules/init/bash" >&2
+  echo "  /etc/profile.d/modules.sh" >&2
+  echo "  /usr/share/lmod/lmod/init/bash" >&2
+  echo "  /etc/profile" >&2
+  echo "  /etc/bashrc" >&2
+  echo "PATH=$PATH" >&2
+  if is_sourced; then
+    return 1
+  fi
+  exit 1
 fi
 
 command -v conda >/dev/null 2>&1 || fail "conda is not available after loading the DAIC Miniconda module."

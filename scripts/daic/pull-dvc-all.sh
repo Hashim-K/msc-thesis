@@ -3,11 +3,19 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
-if ! command -v module >/dev/null 2>&1; then
-  for module_init in /usr/share/Modules/init/bash /etc/profile.d/modules.sh; do
+if ! command -v module >/dev/null 2>&1 && ! command -v modulecmd >/dev/null 2>&1; then
+  for module_init in \
+    /usr/share/Modules/init/bash \
+    /etc/profile.d/modules.sh \
+    /usr/share/lmod/lmod/init/bash \
+    /etc/profile \
+    /etc/bashrc
+  do
     if [[ -f "$module_init" ]]; then
       # shellcheck disable=SC1090
-      source "$module_init"
+      source "$module_init" || true
+    fi
+    if command -v module >/dev/null 2>&1 || command -v modulecmd >/dev/null 2>&1; then
       break
     fi
   done
