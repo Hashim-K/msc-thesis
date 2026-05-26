@@ -54,6 +54,8 @@ configure_remote() {
 echo "==> Host: $(hostname)"
 echo "==> Started: $(date -Is)"
 echo "==> Root: $ROOT"
+echo "==> Shell: $SHELL"
+echo "==> PATH: $PATH"
 echo "==> Shared DVC cache: $SHARED_CACHE_DIR"
 
 echo "==> Pulling Apptainer image"
