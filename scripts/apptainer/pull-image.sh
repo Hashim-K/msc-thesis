@@ -15,8 +15,6 @@ source "$ROOT/scripts/lib/env.sh"
 load_workspace_env "$ROOT"
 
 : "${MINIO_ENDPOINT:?MINIO_ENDPOINT missing from .env}"
-: "${AWS_ACCESS_KEY_ID:?AWS_ACCESS_KEY_ID missing from .env}"
-: "${AWS_SECRET_ACCESS_KEY:?AWS_SECRET_ACCESS_KEY missing from .env}"
 : "${MIR_SHARED_ROOT:?MIR_SHARED_ROOT missing from .env}"
 
 IMAGE_REL="${APPTAINER_DVC_IMAGE:-containers/apptainer/images/mir-common.sif}"
@@ -91,8 +89,12 @@ fi
   cd "$ROOT"
   dvc remote add -f -d origin s3://mir-containers
   dvc remote modify origin endpointurl "$MINIO_ENDPOINT"
-  dvc remote modify --local origin access_key_id "$AWS_ACCESS_KEY_ID"
-  dvc remote modify --local origin secret_access_key "$AWS_SECRET_ACCESS_KEY"
+  if [[ -n "${AWS_ACCESS_KEY_ID:-}" && -n "${AWS_SECRET_ACCESS_KEY:-}" ]]; then
+    dvc remote modify --local origin access_key_id "$AWS_ACCESS_KEY_ID"
+    dvc remote modify --local origin secret_access_key "$AWS_SECRET_ACCESS_KEY"
+  else
+    echo "==> AWS_* credentials are not in env; using existing DVC local config or credential provider"
+  fi
   dvc config --local cache.dir "$SHARED_CACHE_DIR"
   dvc config --local cache.type symlink
   dvc pull "$IMAGE_REL.dvc"
