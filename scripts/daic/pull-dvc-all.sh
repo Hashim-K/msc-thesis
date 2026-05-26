@@ -27,6 +27,9 @@ source "$ROOT/scripts/daic/env.sh"
 source "$ROOT/scripts/lib/env.sh"
 load_workspace_env "$ROOT"
 
+echo "==> Env files: ${MIR_ENV_LOADED_FILES:-none}"
+echo "==> MIR_ENV_PROFILE: ${MIR_ENV_PROFILE:-unset}"
+
 : "${MINIO_ENDPOINT:?MINIO_ENDPOINT missing from .env}"
 : "${AWS_ACCESS_KEY_ID:?AWS_ACCESS_KEY_ID missing from .env}"
 : "${AWS_SECRET_ACCESS_KEY:?AWS_SECRET_ACCESS_KEY missing from .env}"
