@@ -30,6 +30,11 @@ elif [[ -f /etc/profile.d/modules.sh ]]; then
   source /etc/profile.d/modules.sh
   module use /opt/insy/modulefiles
   module load miniconda
+elif [[ -f /usr/share/Modules/init/bash ]]; then
+  # shellcheck disable=SC1091
+  source /usr/share/Modules/init/bash
+  module use /opt/insy/modulefiles
+  module load miniconda
 else
   fail "Environment modules are not available; cannot load DAIC Miniconda."
 fi
