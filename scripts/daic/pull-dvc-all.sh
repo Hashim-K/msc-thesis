@@ -31,8 +31,6 @@ echo "==> Env files: ${MIR_ENV_LOADED_FILES:-none}"
 echo "==> MIR_ENV_PROFILE: ${MIR_ENV_PROFILE:-unset}"
 
 : "${MINIO_ENDPOINT:?MINIO_ENDPOINT missing from .env}"
-: "${AWS_ACCESS_KEY_ID:?AWS_ACCESS_KEY_ID missing from .env}"
-: "${AWS_SECRET_ACCESS_KEY:?AWS_SECRET_ACCESS_KEY missing from .env}"
 : "${MIR_SHARED_ROOT:?MIR_SHARED_ROOT missing from .env}"
 
 SHARED_CACHE_DIR="$MIR_SHARED_ROOT/dvc-cache"
@@ -47,8 +45,12 @@ configure_remote() {
     cd "$repo_dir"
     dvc remote add -f -d origin "s3://$bucket"
     dvc remote modify origin endpointurl "$MINIO_ENDPOINT"
-    dvc remote modify --local origin access_key_id "$AWS_ACCESS_KEY_ID"
-    dvc remote modify --local origin secret_access_key "$AWS_SECRET_ACCESS_KEY"
+    if [[ -n "${AWS_ACCESS_KEY_ID:-}" && -n "${AWS_SECRET_ACCESS_KEY:-}" ]]; then
+      dvc remote modify --local origin access_key_id "$AWS_ACCESS_KEY_ID"
+      dvc remote modify --local origin secret_access_key "$AWS_SECRET_ACCESS_KEY"
+    else
+      echo "==> AWS_* credentials are not in env; using existing DVC local config or credential provider"
+    fi
     dvc config --local cache.dir "$SHARED_CACHE_DIR"
     dvc config --local cache.type symlink
   )
