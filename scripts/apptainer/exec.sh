@@ -4,6 +4,33 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 USE_NV="yes"
 
+find_apptainer() {
+  local candidate
+
+  if [[ -n "${APPTAINER_BIN:-}" && -x "${APPTAINER_BIN:-}" ]]; then
+    printf '%s\n' "$APPTAINER_BIN"
+    return 0
+  fi
+
+  if command -v apptainer >/dev/null 2>&1; then
+    command -v apptainer
+    return 0
+  fi
+
+  for candidate in \
+    "$HOME/miniforge3/envs/apptainer-runtime/bin/apptainer" \
+    "$HOME/miniforge3/envs/MIR/bin/apptainer" \
+    "$HOME/miniconda3/envs/apptainer-runtime/bin/apptainer" \
+    "$HOME/miniconda3/envs/MIR/bin/apptainer"; do
+    if [[ -x "$candidate" ]]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
 if [[ $# -eq 0 ]]; then
   echo "Usage: $0 [--no-nv] <command> [args...]"
   exit 1
@@ -19,8 +46,8 @@ if [[ ! -f "$ROOT/.env" ]]; then
   exit 1
 fi
 
-if ! command -v apptainer >/dev/null 2>&1; then
-  echo "apptainer is not available on PATH."
+if ! APPTAINER_CMD="$(find_apptainer)"; then
+  echo "apptainer is not available on PATH or in a known local conda runtime."
   exit 1
 fi
 
@@ -62,4 +89,4 @@ done
 args+=("$IMAGE")
 args+=("$@")
 
-exec apptainer "${args[@]}"
+exec "$APPTAINER_CMD" "${args[@]}"
