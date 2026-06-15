@@ -50,6 +50,8 @@ if ! APPTAINER_CMD="$(find_apptainer)"; then
   echo "apptainer is not available on PATH or in a known local conda runtime."
   exit 1
 fi
+PATH="$(dirname "$APPTAINER_CMD"):$PATH"
+export PATH
 
 # shellcheck disable=SC1091
 source "$ROOT/scripts/lib/env.sh"
