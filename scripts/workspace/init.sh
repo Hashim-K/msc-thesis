@@ -212,12 +212,6 @@ prompt_env_value() {
   fi
 }
 
-echo "==> Initialising submodules..."
-(
-  cd "$ROOT"
-  git submodule update --init --recursive
-)
-
 echo "==> Setting up .env..."
 if [[ ! -f "$ENVFILE" ]]; then
   echo "Missing tracked env file: $ENVFILE"
@@ -228,6 +222,18 @@ else
 fi
 
 prompt_target_environment
+workspace_profile="${MIR_WORKSPACE_PROFILE:-}"
+if [[ -z "$workspace_profile" ]]; then
+  if [[ "$target_kind" == "legion" ]]; then
+    workspace_profile="full"
+  else
+    workspace_profile="runner"
+  fi
+fi
+
+echo "==> Initialising submodules for profile: $workspace_profile"
+"$ROOT/scripts/workspace/sync-profile.sh" --profile "$workspace_profile"
+
 platform_env_file="$ROOT/.env.$target_kind"
 if [[ ! -f "$platform_env_file" ]]; then
   echo "Missing platform env file: $platform_env_file"

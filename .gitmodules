@@ -33,3 +33,7 @@
 [submodule "repos/thesis-latex"]
 	path = repos/thesis-latex
 	url = git@github.com:Hashim-K/thesis-latex.git
+[submodule "repos/mir-local-cluster"]
+	path = repos/mir-local-cluster
+	url = git@github.com:Hashim-K/mir-local-cluster.git
+	branch = main
