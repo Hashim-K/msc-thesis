@@ -31,6 +31,35 @@ publish_succeeded=false
 metadata_files=(run.json metrics.json config.yaml)
 heavy_dirs=(checkpoints logs)
 
+ensure_dvc_available() {
+  if command -v dvc >/dev/null 2>&1; then
+    return
+  fi
+
+  local conda_sh=""
+  for candidate in "$HOME/miniforge3/etc/profile.d/conda.sh" "$HOME/miniconda3/etc/profile.d/conda.sh"; do
+    if [[ -f "$candidate" ]]; then
+      conda_sh="$candidate"
+      break
+    fi
+  done
+
+  if [[ -n "$conda_sh" ]]; then
+    # Some conda activation hooks read unset variables, so relax nounset only
+    # while activating the host-tools environment.
+    set +u
+    # shellcheck disable=SC1090
+    source "$conda_sh"
+    conda activate MIR
+    set -u
+  fi
+
+  if ! command -v dvc >/dev/null 2>&1; then
+    echo "dvc is not available on PATH; install dvc[s3] in the MIR conda environment."
+    exit 1
+  fi
+}
+
 cleanup() {
   if [[ "$lock_acquired" == "true" && -d "$LOCK_DIR" ]]; then
     rmdir "$LOCK_DIR" >/dev/null 2>&1 || true
@@ -126,6 +155,8 @@ done
 for dir_name in "${heavy_dirs[@]}"; do
   cp -a "$LIVE_RUN_DIR/$dir_name" "$ARCHIVE_RUN_DIR/$dir_name"
 done
+
+ensure_dvc_available
 
 (
   cd "$MIR_OUTPUTS_ROOT"
