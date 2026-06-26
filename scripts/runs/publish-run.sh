@@ -29,6 +29,12 @@ MAX_GIT_PUSH_ATTEMPTS=8
 lock_acquired=false
 publish_succeeded=false
 metadata_files=(run.json metrics.json config.yaml)
+optional_metadata_files=(
+  official_metrics.json
+  observational_metrics.json
+  observational_track_difficulty.csv
+  observational_track_difficulty.json
+)
 heavy_dirs=(checkpoints logs)
 
 ensure_dvc_available() {
@@ -150,6 +156,12 @@ mkdir -p "$ARCHIVE_RUN_DIR"
 
 for file_name in "${metadata_files[@]}"; do
   cp -a "$LIVE_RUN_DIR/$file_name" "$ARCHIVE_RUN_DIR/$file_name"
+done
+
+for file_name in "${optional_metadata_files[@]}"; do
+  if [[ -f "$LIVE_RUN_DIR/$file_name" ]]; then
+    cp -a "$LIVE_RUN_DIR/$file_name" "$ARCHIVE_RUN_DIR/$file_name"
+  fi
 done
 
 for dir_name in "${heavy_dirs[@]}"; do
