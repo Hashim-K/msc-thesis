@@ -30,6 +30,7 @@ lock_acquired=false
 publish_succeeded=false
 metadata_files=(run.json metrics.json config.yaml)
 optional_metadata_files=(
+  evaluation_metrics.json
   official_metrics.json
   observational_metrics.json
   observational_track_difficulty.csv
