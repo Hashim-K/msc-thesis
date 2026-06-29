@@ -35,6 +35,21 @@ printf '    DEPLOY_IMAGE=%q\n' "$DEPLOY_IMAGE"
 printf '    EXPECTED_SIZE=%q\n' "$EXPECTED_SIZE"
 
 if ! command -v dvc >/dev/null 2>&1; then
+  for candidate in \
+    "$HOME/miniforge3/envs/MIR/bin" \
+    "$HOME/miniconda3/envs/MIR/bin" \
+    "$HOME/miniforge3/envs/MIR-hpc/bin" \
+    "$HOME/miniconda3/envs/MIR-hpc/bin"; do
+    if [[ -x "$candidate/dvc" ]]; then
+      echo "==> dvc not found; using $candidate/dvc"
+      PATH="$candidate:$PATH"
+      export PATH
+      break
+    fi
+  done
+fi
+
+if ! command -v dvc >/dev/null 2>&1; then
   case "${MIR_ENV_PROFILE:-}" in
     daic)
       echo "==> dvc not found; loading DAIC host-tools environment..."
