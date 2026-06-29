@@ -22,6 +22,15 @@ The image is DVC-tracked from the `msc-thesis` repo and pushed to the
 ./scripts/apptainer/smoke-test.sh --no-nv
 ```
 
+For hosts where final SIF compression is memory-sensitive, keep Apptainer build
+options and squashfs arguments separate:
+
+```bash
+APPTAINER_BUILD_OPTS="--force --no-cleanup" \
+APPTAINER_MKSQUASHFS_ARGS="-processors 1 -mem 1G" \
+./scripts/apptainer/build.sh
+```
+
 ## Cluster Use
 
 ```bash

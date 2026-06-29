@@ -5,6 +5,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 USE_NV="yes"
 VERBOSE="no"
+REQUESTED_APPTAINER_IMAGE="${APPTAINER_IMAGE:-}"
 PASS_PREFIX="[PASS]"
 WARN_PREFIX="[WARN]"
 FAIL_PREFIX="[FAIL]"
@@ -61,7 +62,8 @@ pass "apptainer on PATH"
 source "$ROOT/scripts/lib/env.sh"
 load_workspace_env "$ROOT"
 
-IMAGE="${APPTAINER_IMAGE:-$ROOT/${APPTAINER_DVC_IMAGE:-containers/apptainer/images/mir-common.sif}}"
+IMAGE="${REQUESTED_APPTAINER_IMAGE:-${APPTAINER_IMAGE:-$ROOT/${APPTAINER_DVC_IMAGE:-containers/apptainer/images/mir-common.sif}}}"
+export APPTAINER_IMAGE="$IMAGE"
 
 if [[ ! -f "$IMAGE" ]]; then
   fail "Missing Apptainer image: $IMAGE. Build or copy the shared image first."

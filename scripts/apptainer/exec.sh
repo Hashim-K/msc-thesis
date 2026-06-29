@@ -3,6 +3,8 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 USE_NV="yes"
+REQUESTED_APPTAINER_IMAGE="${APPTAINER_IMAGE:-}"
+REQUESTED_IMAGE="${IMAGE:-}"
 
 find_apptainer() {
   local candidate
@@ -57,7 +59,7 @@ export PATH
 source "$ROOT/scripts/lib/env.sh"
 load_workspace_env "$ROOT"
 
-IMAGE="${APPTAINER_IMAGE:-${IMAGE:-$ROOT/${APPTAINER_DVC_IMAGE:-containers/apptainer/images/mir-common.sif}}}"
+IMAGE="${REQUESTED_APPTAINER_IMAGE:-${REQUESTED_IMAGE:-${APPTAINER_IMAGE:-${IMAGE:-$ROOT/${APPTAINER_DVC_IMAGE:-containers/apptainer/images/mir-common.sif}}}}}"
 
 if [[ ! -f "$IMAGE" ]]; then
   echo "Missing Apptainer image: $IMAGE"

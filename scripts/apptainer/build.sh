@@ -5,14 +5,18 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 TEMPLATE="$ROOT/containers/apptainer/mir-common.def.in"
 ENV_FILE="$ROOT/repos/mir-environment/environment-apptainer.yml"
 MIR_CORE_DIR="$ROOT/repos/mir-core"
-BUILD_OPTS="${APPTAINER_BUILD_OPTS:-}"
+REQUESTED_BUILD_IMAGE="${APPTAINER_BUILD_IMAGE:-}"
+REQUESTED_BUILD_OPTS="${APPTAINER_BUILD_OPTS:-}"
+REQUESTED_MKSQUASHFS_ARGS="${APPTAINER_MKSQUASHFS_ARGS:-}"
 
 # shellcheck disable=SC1091
 source "$ROOT/scripts/lib/env.sh"
 load_workspace_env "$ROOT"
 
 DEFAULT_IMAGE_REL="${APPTAINER_DVC_IMAGE:-containers/apptainer/images/mir-common.sif}"
-OUTPUT_IMAGE="${1:-${APPTAINER_BUILD_IMAGE:-$ROOT/$DEFAULT_IMAGE_REL}}"
+BUILD_OPTS="${REQUESTED_BUILD_OPTS:-${APPTAINER_BUILD_OPTS:-}}"
+MKSQUASHFS_ARGS="${REQUESTED_MKSQUASHFS_ARGS:-${APPTAINER_MKSQUASHFS_ARGS:-}}"
+OUTPUT_IMAGE="${1:-${REQUESTED_BUILD_IMAGE:-${APPTAINER_BUILD_IMAGE:-$ROOT/$DEFAULT_IMAGE_REL}}}"
 
 if ! command -v apptainer >/dev/null 2>&1; then
   echo "apptainer is not available on PATH."
@@ -52,10 +56,20 @@ echo "    Output:   $OUTPUT_IMAGE"
 if [[ -n "$BUILD_OPTS" ]]; then
   echo "    Build options: $BUILD_OPTS"
 fi
-
-if [[ -n "$BUILD_OPTS" ]]; then
-  # shellcheck disable=SC2086
-  apptainer build $BUILD_OPTS "$OUTPUT_IMAGE" "$TMP_DEF"
-else
-  apptainer build "$OUTPUT_IMAGE" "$TMP_DEF"
+if [[ -n "$MKSQUASHFS_ARGS" ]]; then
+  echo "    mksquashfs args: $MKSQUASHFS_ARGS"
 fi
+
+args=(build)
+if [[ -n "$BUILD_OPTS" ]]; then
+  # Legacy convenience for simple flags such as "--force --fakeroot".
+  # Use APPTAINER_MKSQUASHFS_ARGS for options that need a quoted value.
+  read -r -a extra_build_opts <<< "$BUILD_OPTS"
+  args+=("${extra_build_opts[@]}")
+fi
+if [[ -n "$MKSQUASHFS_ARGS" ]]; then
+  args+=(--mksquashfs-args "$MKSQUASHFS_ARGS")
+fi
+args+=("$OUTPUT_IMAGE" "$TMP_DEF")
+
+apptainer "${args[@]}"
