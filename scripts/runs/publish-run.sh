@@ -32,6 +32,7 @@ metadata_files=(run.json metrics.json config.yaml)
 optional_metadata_files=(
   evaluation_metrics.json
   official_metrics.json
+  runtime_metrics.json
   observational_metrics.json
   observational_track_difficulty.csv
   observational_track_difficulty.json
