@@ -104,6 +104,7 @@ dvc pull
 | `repos/thesis-docs` | [thesis-docs](https://github.com/Hashim-K/thesis-docs) | Notes, ADRs, architecture |
 | `repos/thesis-latex` | [thesis-latex](https://github.com/Hashim-K/thesis-latex) | Thesis manuscript (LaTeX) |
  
+ 
 ## Scripts
  
 Script folders have their own short README files. The parent README keeps the
