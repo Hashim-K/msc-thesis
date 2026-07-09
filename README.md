@@ -104,6 +104,12 @@ dvc pull
 | `repos/thesis-docs` | [thesis-docs](https://github.com/Hashim-K/thesis-docs) | Notes, ADRs, architecture |
 | `repos/thesis-latex` | [thesis-latex](https://github.com/Hashim-K/thesis-latex) | Thesis manuscript (LaTeX) |
  
+## Related Repositories
+
+| Repo | Description |
+|------|-------------|
+| [mir-pcb](https://github.com/Hashim-K/mir-pcb) | KiCad PCB projects and shared hardware references for the MIR wearable rhythm hardware |
+ 
  
 ## Scripts
  
