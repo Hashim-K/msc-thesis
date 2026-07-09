@@ -38,6 +38,7 @@ From: ubuntu:22.04
     export TMP=/opt/msc-thesis/tmp
     export PIP_CACHE_DIR=/opt/msc-thesis/pip-cache
     export PIP_NO_CACHE_DIR=1
+    export PIP_NO_BUILD_ISOLATION=1
 
     export MAMBA_ROOT_PREFIX=/opt/micromamba-build
     micromamba create -y -p /opt/micromamba/envs/MIR-apptainer -f /opt/msc-thesis/environment-apptainer.yml
