@@ -28,13 +28,14 @@ For `daic`, `init.sh` creates a minimal `MIR-hpc` bootstrap environment for
 DVC and lightweight helper scripts. The full training/runtime stack is
 provided by the shared Apptainer image.
 
-DelftBlue is intentionally not configured yet. Add a tracked `.env.delftblue`
-and verify the Apptainer workflow there before treating it as supported.
+For `delftblue`, `init.sh` uses the same minimal `MIR-hpc` bootstrap model as
+DAIC, loads `.env.delftblue`, and expects a user-installed Miniconda or
+Miniforge under `$HOME`.
 
 `init.sh` will:
 
 - initialize submodules
-- use the tracked `.env` plus the selected platform file such as `.env.legion` or `.env.daic`
+- use the tracked `.env` plus the selected platform file such as `.env.legion`, `.env.daic`, or `.env.delftblue`
 - ask whether to set up `legion` (`MIR`), `daic` (`MIR-hpc`), or `delftblue` (`MIR-hpc`)
 - create or update the matching conda environment from `repos/mir-environment`
 - activate that environment inside the script
@@ -109,8 +110,7 @@ dvc pull
 | Repo | Description |
 |------|-------------|
 | [mir-pcb](https://github.com/Hashim-K/mir-pcb) | KiCad PCB projects and shared hardware references for the MIR wearable rhythm hardware |
- 
- 
+
 ## Scripts
  
 Script folders have their own short README files. The parent README keeps the
@@ -177,9 +177,9 @@ On DAIC, pull and link the image into the configured runtime path:
 ./scripts/apptainer/pull-image.sh
 ```
 
-The DAIC pull path is verified. The script pulls the DVC-tracked image from the
-`mir-containers` remote into the shared DVC cache and links
-`$APPTAINER_IMAGE` directly to the resolved cache object.
+On DAIC and DelftBlue, the script pulls the DVC-tracked image from the
+`mir-containers` remote into the shared DVC cache and links `$APPTAINER_IMAGE`
+directly to the resolved cache object.
 
 Run a command inside it:
 
@@ -221,6 +221,7 @@ Verify one bootstrap environment end-to-end with:
 ```bash
 ./scripts/workspace/smoke-test.sh legion --pull-test
 ./scripts/workspace/smoke-test.sh daic --pull-test
+./scripts/workspace/smoke-test.sh delftblue --pull-test
 ```
 
 The script activates the target bootstrap environment, verifies DVC and a few
@@ -237,5 +238,12 @@ On a DAIC GPU allocation, verify CUDA visibility with:
 
 ```bash
 sinteractive --gres=gpu:1 --mem=8G --time=01:00:00
+./scripts/apptainer/smoke-test.sh --verbose
+```
+
+On DelftBlue, use an allocated GPU node, for example:
+
+```bash
+srun --partition=gpu --time=00:30:00 --ntasks=1 --cpus-per-task=4 --gpus-per-task=1 --mem=16G --account=<account> --pty bash
 ./scripts/apptainer/smoke-test.sh --verbose
 ```

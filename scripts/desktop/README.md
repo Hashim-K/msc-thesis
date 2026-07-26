@@ -8,5 +8,6 @@ Launcher scripts for `repos/mir-desktop-app`.
 ./scripts/desktop/run.sh
 ```
 
-The desktop application is not implemented yet. The launcher currently exits
-with `TBD: still not developed`.
+The launcher delegates to `repos/mir-desktop-app/run.sh` and forwards any
+arguments. Activate the local `MIR` conda environment before starting the
+application.

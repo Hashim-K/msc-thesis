@@ -5,3 +5,7 @@ __pycache__/
 containers/apptainer/*.sif
 containers/apptainer/images/*.sif
 containers/apptainer/*.sandbox/
+
+# Local caches, downloads, and scratch workspace
+/shared/
+/temp/

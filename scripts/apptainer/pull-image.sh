@@ -56,6 +56,11 @@ if ! command -v dvc >/dev/null 2>&1; then
       # shellcheck disable=SC1091
       source "$ROOT/scripts/daic/env.sh"
       ;;
+    delftblue)
+      echo "==> dvc not found; loading DelftBlue host-tools environment..."
+      # shellcheck disable=SC1091
+      source "$ROOT/scripts/delftblue/env.sh"
+      ;;
   esac
 fi
 
@@ -65,6 +70,8 @@ if ! command -v dvc >/dev/null 2>&1; then
   echo "  conda activate MIR-hpc"
   echo "On DAIC, if conda is not loaded yet:"
   echo "  source ./scripts/daic/env.sh"
+  echo "On DelftBlue, if conda is not loaded yet:"
+  echo "  source ./scripts/delftblue/env.sh"
   exit 1
 fi
 
@@ -86,6 +93,10 @@ ensure_dir() {
 
 ensure_dir "$SHARED_CACHE_DIR" "shared DVC cache"
 ensure_dir "$DEPLOY_IMAGE_DIR" "Apptainer image directory"
+if [[ "${MIR_ENV_PROFILE:-}" == "delftblue" ]]; then
+  ensure_dir "${APPTAINER_CACHEDIR:-/scratch/$USER/.apptainer/cache}" "Apptainer cache"
+  ensure_dir "${TMPDIR:-/scratch/$USER/tmp}" "temporary directory"
+fi
 
 if [[ -e "$IMAGE_PATH" ]]; then
   resolved_image="$(readlink -f "$IMAGE_PATH" || true)"

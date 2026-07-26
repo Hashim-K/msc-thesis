@@ -47,7 +47,7 @@ home quota.
 
 Use `--no-nv` when testing on a machine without NVIDIA GPU support.
 
-## Verified DAIC Baseline
+## Verified Cluster Baselines
 
 The shared image has been pulled and smoke-tested on DAIC:
 
@@ -65,3 +65,6 @@ sinteractive --gres=gpu:1 --mem=8G --time=01:00:00
 
 Verified result: NVIDIA A40 visible inside the container with
 `cuda_available=True`.
+
+DelftBlue uses the same image workflow, with Apptainer cache and temporary
+files under `/scratch` via `.env.delftblue`.
