@@ -210,9 +210,12 @@ completed attempts with:
 ./scripts/runs/publish-run.sh <experiment_hash> <attempt_id>
 ```
 
-Archived runs land in `repos/mir-outputs/runs/<experiment_hash>/<attempt_id>/`.
-Small metadata files stay in Git, while `checkpoints/` and `logs/` are tracked
-with DVC and stored through the shared cache under `MIR_SHARED_ROOT`.
+Unified archives land in
+`repos/mir-outputs/runs/<experiment_hash>/attempts/<attempt_id>/`. Compact
+catalog metadata, metric exports, and LaTeX/PDF reports stay in Git; the exact
+attempt snapshot is tracked by `data.dvc`. Publication is copy-only: completed
+live attempts remain under `MIR_RUNS_ROOT` on HDD after both DVC and Git pushes
+succeed. See `scripts/runs/README.md` for lifecycle and legacy compatibility.
 
 ## Smoke Tests
 
