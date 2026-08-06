@@ -37,3 +37,7 @@
 	path = repos/mir-local-cluster
 	url = git@github.com:Hashim-K/mir-local-cluster.git
 	branch = main
+[submodule "repos/mir-results-webapp"]
+	path = repos/mir-results-webapp
+	url = git@github.com:Hashim-K/mir-results-webapp.git
+	branch = main

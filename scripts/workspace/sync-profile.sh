@@ -13,7 +13,7 @@ Usage: ./scripts/workspace/sync-profile.sh [--profile runner|webapp|full] [--pul
 
 Profiles:
   runner  Code/data needed for training and DVC materialization.
-  webapp  runner plus the FastAPI/Next.js webapp.
+  webapp  runner plus the scheduling and completed-results webapps.
   full    All top-level submodules from .gitmodules.
 
 Options:
@@ -72,6 +72,7 @@ repos/mir-data
 repos/mir-outputs
 repos/mir-environment
 repos/mir-webapp
+repos/mir-results-webapp
 EOF
       ;;
     full)
