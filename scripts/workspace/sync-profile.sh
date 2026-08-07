@@ -20,9 +20,11 @@ Options:
   --pull-root      Fast-forward the msc-thesis superproject before syncing submodules.
   --deinit-others  Deinitialize clean submodules that are not part of the selected profile.
 
-The script is intentionally conservative: it uses fast-forward merges only and
-skips dirty, ahead, diverged, or otherwise unsafe worktrees instead of resetting
-them.
+The script is intentionally conservative: it uses fast-forward merges only,
+never resets an initialized submodule to an older superproject pin, and skips
+tracked local changes, ahead branches, diverged branches, or otherwise unsafe
+worktrees. Untracked runtime outputs are preserved; Git still rejects any
+checkout that would overwrite one.
 EOF
 }
 
@@ -94,6 +96,11 @@ submodule_branch() {
   git -C "$ROOT" config -f .gitmodules --get "submodule.${name}.branch" 2>/dev/null || echo "main"
 }
 
+has_tracked_changes() {
+  local path="$1"
+  [[ -n "$(git -C "$path" status --porcelain --untracked-files=no 2>/dev/null)" ]]
+}
+
 is_dirty() {
   local path="$1"
   [[ -n "$(git -C "$path" status --porcelain 2>/dev/null)" ]]
@@ -103,6 +110,7 @@ pull_worktree() {
   local path="$1"
   local label="$2"
   local wanted_branch="${3:-main}"
+  local allow_tracked_changes="${4:-false}"
 
   echo "==> $label"
   if ! git -C "$path" rev-parse --git-dir >/dev/null 2>&1; then
@@ -110,15 +118,22 @@ pull_worktree() {
     return 1
   fi
 
-  if is_dirty "$path"; then
-    echo "    skip: worktree has local changes"
-    return 1
+  if has_tracked_changes "$path"; then
+    if [[ "$allow_tracked_changes" != true ]]; then
+      echo "    skip: worktree has tracked local changes"
+      return 1
+    fi
+    echo "    note: preserving tracked deployment overrides"
   fi
 
   local branch
   branch="$(git -C "$path" rev-parse --abbrev-ref HEAD 2>/dev/null || echo HEAD)"
-  if [[ "$branch" == "HEAD" ]]; then
-    echo "    detached HEAD - checking out $wanted_branch"
+  if [[ "$branch" != "$wanted_branch" ]]; then
+    if [[ "$branch" == "HEAD" ]]; then
+      echo "    detached HEAD - checking out $wanted_branch"
+    else
+      echo "    branch $branch - checking out $wanted_branch"
+    fi
     if ! git -C "$path" checkout "$wanted_branch" >/dev/null 2>&1; then
       echo "    failed to checkout $wanted_branch"
       return 1
@@ -188,7 +203,7 @@ fi
 failures=()
 
 if $pull_root; then
-  pull_worktree "$ROOT" "msc-thesis" "$(git -C "$ROOT" branch --show-current || echo main)" || failures+=("msc-thesis")
+  pull_worktree "$ROOT" "msc-thesis" "$(git -C "$ROOT" branch --show-current || echo main)" true || failures+=("msc-thesis")
   echo
 fi
 
@@ -196,11 +211,20 @@ echo "==> Workspace profile: $profile"
 printf '    %s\n' "${paths[@]}"
 echo
 
-(
-  cd "$ROOT"
-  git submodule sync --recursive -- "${paths[@]}" >/dev/null
-  git submodule update --init --recursive -- "${paths[@]}"
-)
+git -C "$ROOT" submodule sync --recursive -- "${paths[@]}" >/dev/null
+git -C "$ROOT" submodule init -- "${paths[@]}" >/dev/null
+
+for path in "${paths[@]}"; do
+  if [[ -e "$ROOT/$path/.git" ]]; then
+    continue
+  fi
+  echo "==> initialize $path"
+  if ! git -C "$ROOT" submodule update --init --recursive -- "$path"; then
+    echo "    failed to initialize submodule"
+    failures+=("$path")
+  fi
+  echo
+done
 
 for path in "${paths[@]}"; do
   branch="$(submodule_branch "$path")"
