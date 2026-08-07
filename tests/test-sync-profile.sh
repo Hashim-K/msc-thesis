@@ -82,5 +82,6 @@ fi
 test "$(git -C "$WORKTREE/repos/child" rev-parse HEAD)" = "$child_v2"
 test "$(cat "$WORKTREE/repos/child/version.txt")" = "local tracked edit"
 grep -Fq "skip: worktree has tracked local changes" "$TEST_ROOT/dirty-sync.log"
+grep -Fq "__MIR_WORKSPACE_SYNC_SUMMARY__=full|0|1" "$TEST_ROOT/dirty-sync.log"
 
 echo "sync-profile regression test passed"

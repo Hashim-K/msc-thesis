@@ -201,9 +201,14 @@ if (( ${#paths[@]} == 0 )); then
 fi
 
 failures=()
+synced=()
 
 if $pull_root; then
-  pull_worktree "$ROOT" "msc-thesis" "$(git -C "$ROOT" branch --show-current || echo main)" true || failures+=("msc-thesis")
+  if pull_worktree "$ROOT" "msc-thesis" "$(git -C "$ROOT" branch --show-current || echo main)" true; then
+    synced+=("msc-thesis")
+  else
+    failures+=("msc-thesis")
+  fi
   echo
 fi
 
@@ -228,7 +233,11 @@ done
 
 for path in "${paths[@]}"; do
   branch="$(submodule_branch "$path")"
-  pull_worktree "$ROOT/$path" "$path" "$branch" || failures+=("$path")
+  if pull_worktree "$ROOT/$path" "$path" "$branch"; then
+    synced+=("$path")
+  else
+    failures+=("$path")
+  fi
   echo
 done
 
@@ -242,7 +251,9 @@ fi
 if (( ${#failures[@]} > 0 )); then
   echo "Failures/skips:"
   printf '  - %s\n' "${failures[@]}"
+  printf '__MIR_WORKSPACE_SYNC_SUMMARY__=%s|%s|%s\n' "$profile" "${#synced[@]}" "${#failures[@]}"
   exit 1
 fi
 
+printf '__MIR_WORKSPACE_SYNC_SUMMARY__=%s|%s|0\n' "$profile" "${#synced[@]}"
 echo "Workspace profile '$profile' is up to date."
