@@ -20,6 +20,11 @@ load_workspace_env "$ROOT"
 
 EXPERIMENT_HASH="${1:?Usage: publish-run.sh <experiment_hash> <attempt_id>}"
 ATTEMPT_ID="${2:?Usage: publish-run.sh <experiment_hash> <attempt_id>}"
+PUBLICATION_DEFER_MARKER="${MIR_PUBLICATION_DEFER_MARKER:-$MIR_RUNS_ROOT/.publication-deferred}"
+if [[ -e "$PUBLICATION_DEFER_MARKER" ]]; then
+  echo "Publication deferred by operational marker: $PUBLICATION_DEFER_MARKER"
+  exit 0
+fi
 PUBLISH_CLI="$MIR_OUTPUTS_ROOT/scripts/publish_completed_run.py"
 MAX_GIT_PUSH_ATTEMPTS=8
 publication_prepared=false
