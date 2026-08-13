@@ -81,9 +81,10 @@ add_bind_if_set "${MIR_CORE_PATH:-}"
 add_bind_if_set "${MIR_SHARED_ROOT:-}"
 # DVC may materialize workspace files as absolute symlinks into the shared
 # cache. Binding the shared parent does not make a symlink target outside that
-# bind visible in Apptainer, so mount the cache itself as a nested bind too.
-if [[ -n "${MIR_SHARED_ROOT:-}" ]]; then
-  add_bind_if_set "$MIR_SHARED_ROOT/dvc-cache"
+# bind visible in Apptainer. Mount the cache's canonical target path so those
+# absolute workspace symlinks resolve inside the container too.
+if [[ -n "${MIR_SHARED_ROOT:-}" && -e "$MIR_SHARED_ROOT/dvc-cache" ]]; then
+  add_bind_if_set "$(readlink -f "$MIR_SHARED_ROOT/dvc-cache")"
 fi
 add_bind_if_set "${MIR_RUNS_ROOT:-}"
 
