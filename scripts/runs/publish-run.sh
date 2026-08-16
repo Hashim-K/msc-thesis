@@ -63,6 +63,16 @@ ensure_dvc_available() {
   fi
 }
 
+ensure_report_compiler_available() {
+  if command -v latexmk >/dev/null 2>&1; then
+    return
+  fi
+
+  echo "latexmk is not available on PATH." >&2
+  echo "Update the host-tools conda environment from mir-environment." >&2
+  exit 1
+}
+
 publisher() {
   PYTHONPATH="$MIR_OUTPUTS_ROOT${PYTHONPATH:+:$PYTHONPATH}" \
     python "$PUBLISH_CLI" "$@"
@@ -86,6 +96,7 @@ mark_failed() {
 trap mark_failed ERR
 
 ensure_dvc_available
+ensure_report_compiler_available
 
 # Serialize the local DVC/Git checkout. Per-attempt catalog entries avoid
 # cross-host content conflicts when independent publishers later rebase.

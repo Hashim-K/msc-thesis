@@ -156,6 +156,7 @@ echo "python: $(which python)"
 echo
 echo "==> Bootstrap environment checks"
 dvc version
+latexmk -version
 python - <<'PY'
 import yaml
 import click

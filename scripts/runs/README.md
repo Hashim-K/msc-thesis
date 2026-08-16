@@ -37,10 +37,12 @@ Publish with:
 ```
 
 The script creates one versioned bundle under
-`mir-outputs/runs/<experiment_hash>/attempts/<attempt_id>/`, generates total and
-per-stage LaTeX reports (plus PDFs when `latexmk` is available) and long-form
-metric exports, and DVC-tracks the entire copied attempt snapshot. Compact
-reports and an append-only per-attempt catalog entry are Git-tracked.
+`mir-outputs/runs/<experiment_hash>/attempts/<attempt_id>/`, retains total and
+per-stage LaTeX sources, requires matching PDFs compiled with `latexmk`,
+generates long-form metric exports, and DVC-tracks the entire copied attempt
+snapshot. Compact reports and an append-only per-attempt catalog entry are
+Git-tracked. Publication stops before preparation if the report compiler is
+unavailable.
 
 Publication state moves through:
 
